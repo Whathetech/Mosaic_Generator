@@ -1,53 +1,45 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const sharp = require('sharp'); // Bibliothek zur Bildbearbeitung
+const cors = require('cors'); // CORS importieren
+const bodyParser = require('body-parser');
 const app = express();
+const port = process.env.PORT || 3000;
 
-// Multer-Setup für das Speichern von Bildern im Speicher (im Speicher als Buffer)
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+// Middleware zum Parsen von JSON-Daten
+app.use(bodyParser.json());
 
-// POST-Endpunkt zum Empfangen und Bearbeiten des Bildes
-app.post('/upload-image', upload.single('image'), async (req, res) => {
-  try {
-    // Bild im Buffer-Format
-    const imageBuffer = req.file.buffer;
+// CORS Middleware aktivieren
+app.use(cors({
+  origin: '*', // Erlaubt alle Ursprünge. Du kannst es auch einschränken, wenn du nur Shopify zulassen möchtest
+  methods: ['GET', 'POST'], // Erlaubte Methoden
+  allowedHeaders: ['Content-Type'] // Erlaubte Header
+}));
 
-    // Bildbearbeitung mit sharp:
-    // 1. Skalierung des Bildes
-    // 2. Hinzufügen von Text auf das Bild
-    const processedImage = await sharp(imageBuffer)
-      .resize(500) // Das Bild auf eine Breite von 500px skalieren
-      .composite([{
-        input: Buffer.from('<svg><text x="10" y="50" font-size="48" fill="red">Mosaik</text></svg>'),
-        top: 10,
-        left: 10
-      }]) // Text "Mosaik" hinzufügen
-      .toBuffer();  // Das bearbeitete Bild als Buffer zurückgeben
+// Variable, um das übertragene Wort zu speichern
+let transferredWord = '';
 
-    // Speicherort für das bearbeitete Bild
-    const filePath = path.join(__dirname, 'processed-mosaic.png');
-
-    // Das bearbeitete Bild speichern
-    fs.writeFileSync(filePath, processedImage);
-
-    // Antwort an den Client zurücksenden (z.B. die URL des gespeicherten Bildes)
-    res.json({
-      message: 'Bild erfolgreich verarbeitet',
-      imageUrl: 'http://209.38.245.49/processed-mosaic.png'
-    });
-  } catch (error) {
-    console.error('Fehler bei der Bildverarbeitung:', error);
-    res.status(500).json({ message: 'Fehler bei der Bildverarbeitung' });
+// Route für das Empfangen des Worts von Shopify
+app.post('/transfer-word', (req, res) => {
+  const { word } = req.body;
+  if (!word) {
+    console.error('Kein Wort empfangen');
+    return res.status(400).json({ message: 'Kein Wort gesendet!' });
   }
+
+  // Das Wort speichern
+  transferredWord = word;
+
+  console.log('Erhaltenes Wort:', word);
+
+  // Erfolgsantwort senden
+  res.json({ message: 'Wort erfolgreich empfangen!' });
 });
 
-// Static files (um das bearbeitete Bild zugänglich zu machen)
-app.use(express.static(__dirname));
+// Route zum Anzeigen des Worts
+app.get('/', (req, res) => {
+  res.send(`<h1>Übertragenes Wort: ${transferredWord}</h1>`);
+});
 
 // Server starten
-app.listen(3000, () => {
-  console.log('Server läuft auf http://localhost:3000');
+app.listen(port, () => {
+  console.log(`Server läuft auf http://localhost:${port}`);
 });
