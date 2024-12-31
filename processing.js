@@ -337,7 +337,11 @@ async function run(base64Image) {
     try {
         const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-
+        console.log("Länge des mosaicBuffer:", mosaicBuffer.length);
+        if (!mosaicBuffer || mosaicBuffer.length === 0) {
+            throw new Error("createMosaicImage hat keinen gültigen Buffer zurückgegeben.");
+        }
+        
         const baseImages = [
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Couch.png",
