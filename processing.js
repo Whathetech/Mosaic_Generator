@@ -320,16 +320,15 @@ function createMosaicImage(mosaicPixels) {
 
     // Finales Bild mit Rand erstellen und als Buffer zurückgeben
     return sharp(finalImageBuffer, { raw: { width: mosaicWidthWithBorder, height: mosaicHeightWithBorder, channels: 4 } })
-    .png() // Konvertiere die Rohdaten in PNG
-    .toBuffer()
-    .then((buffer) => {
-        console.log("Das Mosaik wurde erfolgreich in PNG konvertiert.");
-        return buffer;
-    })
-    .catch((err) => {
-        console.error("Fehler beim Erstellen des Mosaik-Bildes:", err);
-        throw err;
-    });
+        .toBuffer()
+        .then((buffer) => {
+            console.log("Das Mosaik mit Rand wurde erfolgreich erstellt.");
+            return buffer; // Finaler Buffer wird zurückgegeben
+        })
+        .catch((err) => {
+            console.error("Fehler beim Erstellen des Mosaiks:", err);
+            throw err; // Fehler weitergeben
+        });
 }
 
 // `run`-Funktion für die Verarbeitung
