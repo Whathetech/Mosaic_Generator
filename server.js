@@ -46,14 +46,19 @@ app.post('/upload', async (req, res) => {
             .composite([{ input: userImageBuffer, top: 50, left: 50 }]) // Position kann angepasst werden
             .toBuffer();
 
+        // Größe des kombinierten Bildes um die Hälfte reduzieren
+        const resizedBuffer = await sharp(compositeImageBuffer)
+            .resize({ width: Math.round(0.5 * (await sharp(compositeImageBuffer).metadata()).width) }) // Höhe wird proportional angepasst
+            .toBuffer();
+
         // Base64-kodiertes Bild erstellen
-        const outputBase64 = `data:image/png;base64,${compositeImageBuffer.toString('base64')}`;
+        const outputBase64 = `data:image/png;base64,${resizedBuffer.toString('base64')}`;
 
         // Rückgabe an Shopify
         res.status(200).json({
             success: true,
-            message: 'Bild wurde erfolgreich verarbeitet und kombiniert.',
-            image: outputBase64, // Kombiniertes Bild als Base64
+            message: 'Bild wurde erfolgreich verarbeitet, kombiniert und verkleinert.',
+            image: outputBase64, // Kombiniertes und verkleinertes Bild als Base64
         });
 
     } catch (error) {
