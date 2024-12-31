@@ -337,10 +337,9 @@ async function run(base64Image) {
     try {
         const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-        console.log("Länge des mosaicBuffer:", mosaicBuffer.length);
-        if (!mosaicBuffer || mosaicBuffer.length === 0) {
-            throw new Error("createMosaicImage hat keinen gültigen Buffer zurückgegeben.");
-        }
+        // Temporäre Speicherung zur Prüfung
+        fs.writeFileSync('temp_mosaic_buffer.png', mosaicBuffer);
+        console.log('Mosaic Buffer wurde als temp_mosaic_buffer.png gespeichert.');
         
         const baseImages = [
             {
