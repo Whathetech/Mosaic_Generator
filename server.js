@@ -34,7 +34,6 @@ app.post('/upload', async (req, res) => {
 
         // Bildbearbeitung (z. B. Skalieren und Graufilter anwenden)
         const processedImageBuffer = await sharp(buffer)
-            .resize(300, 300) // Beispiel: Bild auf 300x300 Pixel skalieren
             .grayscale() // Beispiel: Graustufen anwenden
             .toBuffer();
 
