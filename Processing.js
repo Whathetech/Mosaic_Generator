@@ -148,7 +148,14 @@ app.post('/', (req, res) => {
 
         // Das Bild auf der Festplatte speichern
         fs.writeFileSync(outputPath, buffer);
+
+        // Erfolgreiche Rückmeldung an den Client
+        res.status(200).json({ success: true, message: 'Bild erfolgreich gespeichert!', path: outputPath });
+    } catch (error) {
+        console.error('Fehler beim Verarbeiten des Bildes:', error);
+        res.status(500).json({ success: false, message: 'Fehler beim Speichern des Bildes.' });
     }
+});
 
 async function processMosaic() {
     try {
@@ -486,4 +493,4 @@ async function run() {
 }
 
 // Starten der Funktion
-//run();
+run();
