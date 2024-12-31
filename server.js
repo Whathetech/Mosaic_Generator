@@ -1,6 +1,18 @@
 const express = require('express');
+const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 
+// CORS-Konfiguration
+const corsOptions = {
+    origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
+    methods: ['GET', 'POST'],                 // Erlaubte HTTP-Methoden
+    allowedHeaders: ['Content-Type'],         // Erlaubte Header
+};
+
+// CORS-Middleware aktivieren
+app.use(cors(corsOptions));
+
+// Middleware für JSON-Parsing
 app.use(express.json({ limit: '10mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
 // Route für den Bild-Upload
