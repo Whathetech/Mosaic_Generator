@@ -1,13 +1,14 @@
 const express = require('express');
-const cors = require('cors');
-const sharp = require('sharp'); // Bildbearbeitung
+const cors = require('cors'); // Importiere das cors-Modul
+const axios = require('axios');
+const sharp = require('sharp'); // Für Bildverarbeitung
 const app = express();
 
 // CORS-Konfiguration
 const corsOptions = {
-    origin: 'https://7e3473-cd.myshopify.com',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type'],
+    origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
+    methods: ['GET', 'POST'],                 // Erlaubte HTTP-Methoden
+    allowedHeaders: ['Content-Type'],         // Erlaubte Header
 };
 
 // CORS-Middleware aktivieren
@@ -15,6 +16,9 @@ app.use(cors(corsOptions));
 
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '10mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
+
+// URL des Hintergrundbilds
+const BACKGROUND_URL = 'https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/fe1596ca47446087368bdc92c44a4e5fd2f88c3f/Stock_Footage/Cropped_Portrait/Couch.png';
 
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
@@ -27,28 +31,34 @@ app.post('/upload', async (req, res) => {
 
     try {
         console.log('Bild erfolgreich empfangen!');
-        
-        // Entferne den Base64-Prefix und konvertiere das Bild
-        const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
-        const buffer = Buffer.from(base64Data, 'base64');
+        console.log('Base64-Länge:', image.length);
 
-        // Bildbearbeitung (z. B. Skalieren und Graufilter anwenden)
-        const processedImageBuffer = await sharp(buffer)
-            .grayscale() // Beispiel: Graustufen anwenden
+        // Das Bild aus dem Base64-String dekodieren
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, ''); // Entfernt den Präfix
+        const userImageBuffer = Buffer.from(base64Data, 'base64');
+
+        // Hintergrundbild herunterladen
+        const response = await axios.get(BACKGROUND_URL, { responseType: 'arraybuffer' });
+        const backgroundBuffer = Buffer.from(response.data);
+
+        // Hintergrundbild und empfangenes Bild kombinieren
+        const compositeImageBuffer = await sharp(backgroundBuffer)
+            .composite([{ input: userImageBuffer, top: 50, left: 50 }]) // Position kann angepasst werden
             .toBuffer();
 
         // Base64-kodiertes Bild erstellen
-        const processedImageBase64 = `data:image/png;base64,${processedImageBuffer.toString('base64')}`;
+        const outputBase64 = `data:image/png;base64,${compositeImageBuffer.toString('base64')}`;
 
-        // Rückmeldung an Shopify
-        res.json({
+        // Rückgabe an Shopify
+        res.status(200).json({
             success: true,
-            message: 'Bild erfolgreich verarbeitet.',
-            image: processedImageBase64, // Bearbeitetes Bild zurückgeben
+            message: 'Bild wurde erfolgreich verarbeitet und kombiniert.',
+            image: outputBase64, // Kombiniertes Bild als Base64
         });
+
     } catch (error) {
-        console.error('Fehler bei der Bildbearbeitung:', error);
-        res.status(500).json({ success: false, message: 'Fehler bei der Bildbearbeitung.' });
+        console.error('Fehler bei der Bildverarbeitung:', error);
+        res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
     }
 });
 
