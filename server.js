@@ -1,45 +1,26 @@
 const express = require('express');
-const cors = require('cors'); // CORS importieren
-const bodyParser = require('body-parser');
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Middleware zum Parsen von JSON-Daten
-app.use(bodyParser.json());
+app.use(express.json({ limit: '10mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
-// CORS Middleware aktivieren
-app.use(cors({
-  origin: '*', // Erlaubt alle Ursprünge. Du kannst es auch einschränken, wenn du nur Shopify zulassen möchtest
-  methods: ['GET', 'POST'], // Erlaubte Methoden
-  allowedHeaders: ['Content-Type'] // Erlaubte Header
-}));
+// Route für den Bild-Upload
+app.post('/upload', (req, res) => {
+    const { image } = req.body;
 
-// Variable, um das übertragene Wort zu speichern
-let transferredWord = '';
+    if (!image) {
+        console.error('Kein Bild empfangen.');
+        return res.status(400).json({ success: false, message: 'Kein Bild empfangen.' });
+    }
 
-// Route für das Empfangen des Worts von Shopify
-app.post('/transfer-word', (req, res) => {
-  const { word } = req.body;
-  if (!word) {
-    console.error('Kein Wort empfangen');
-    return res.status(400).json({ message: 'Kein Wort gesendet!' });
-  }
+    console.log('Bild erfolgreich empfangen!');
+    console.log('Base64-Länge:', image.length); // Optional: Debugging
 
-  // Das Wort speichern
-  transferredWord = word;
-
-  console.log('Erhaltenes Wort:', word);
-
-  // Erfolgsantwort senden
-  res.json({ message: 'Wort erfolgreich empfangen!' });
-});
-
-// Route zum Anzeigen des Worts
-app.get('/', (req, res) => {
-  res.send(`<h1>Übertragenes Wort: ${transferredWord}</h1>`);
+    // Rückmeldung an den Shopify-Client
+    res.json({ success: true, message: 'Bild wurde erfolgreich empfangen.' });
 });
 
 // Server starten
-app.listen(port, () => {
-  console.log(`Server läuft auf http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server läuft auf Port ${PORT}`);
 });
