@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
-const axios = require('axios');
-const sharp = require('sharp'); // Für Bildverarbeitung
 const app = express();
+const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
 // CORS-Konfiguration
 const corsOptions = {
@@ -17,9 +16,6 @@ app.use(cors(corsOptions));
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '10mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
-// URL des Hintergrundbilds
-const BACKGROUND_URL = 'https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/fe1596ca47446087368bdc92c44a4e5fd2f88c3f/Stock_Footage/Cropped_Portrait/Couch.png';
-
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
     const { image } = req.body;
@@ -31,36 +27,19 @@ app.post('/upload', async (req, res) => {
 
     try {
         console.log('Bild erfolgreich empfangen!');
-        console.log('Base64-Länge:', image.length);
 
-        // Das Bild aus dem Base64-String dekodieren
-        const base64Data = image.replace(/^data:image\/\w+;base64,/, ''); // Entfernt den Präfix
-        const userImageBuffer = Buffer.from(base64Data, 'base64');
+        // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
+        const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
 
-        // Hintergrundbild herunterladen
-        const response = await axios.get(BACKGROUND_URL, { responseType: 'arraybuffer' });
-        const backgroundBuffer = Buffer.from(response.data);
+        // Buffers in Base64 kodieren
+        const base64Images = resultBuffers.map((buffer) => `data:image/png;base64,${buffer.toString('base64')}`);
 
-        // Hintergrundbild und empfangenes Bild kombinieren
-        const compositeImageBuffer = await sharp(backgroundBuffer)
-            .composite([{ input: userImageBuffer, top: 50, left: 50 }]) // Position kann angepasst werden
-            .toBuffer();
-
-        // Größe des kombinierten Bildes um die Hälfte reduzieren
-        const resizedBuffer = await sharp(compositeImageBuffer)
-            .resize({ width: Math.round(0.5 * (await sharp(compositeImageBuffer).metadata()).width) }) // Höhe wird proportional angepasst
-            .toBuffer();
-
-        // Base64-kodiertes Bild erstellen
-        const outputBase64 = `data:image/png;base64,${resizedBuffer.toString('base64')}`;
-
-        // Rückgabe an Shopify
+        // Rückgabe der Bilder an Shopify
         res.status(200).json({
             success: true,
-            message: 'Bild wurde erfolgreich verarbeitet, kombiniert und verkleinert.',
-            image: outputBase64, // Kombiniertes und verkleinertes Bild als Base64
+            message: 'Bilder wurden erfolgreich verarbeitet.',
+            images: base64Images, // Array mit Base64-Bildern
         });
-
     } catch (error) {
         console.error('Fehler bei der Bildverarbeitung:', error);
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });

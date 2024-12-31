@@ -109,97 +109,34 @@ const CIEDEGRAYSCALES = "CIEDE_GRAYSCALES.png";
 const EUKLIDFLOYDGRAYSCALES = "EUKLID_FLOYD_GRAYSCALES.png";
 const CIEDEFLOYDGRAYSCALES = "CIEDE_FLOYD_GRAYSCALES.png";
 
-// Verzeichnis zum Speichern der Mosaikbilder
-const directory = path.dirname(__filename); // Aktuellen Verzeichnis-Pfad verwenden
-
-// Pfade für Mosaike
-const EUKLID_PATH = path.join(directory, EUKLID);
-const CIEDE_PATH = path.join(directory, CIEDE);
-const EUKLIDFLOYD_PATH = path.join(directory, EUKLIDFLOYD);
-const CIEDEFLOYD_PATH = path.join(directory, CIEDEFLOYD);
-const EUKLIDGRAYSCALES_PATH = path.join(directory, EUKLIDGRAYSCALES);
-const CIEDEGRAYSCALES_PATH = path.join(directory, CIEDEGRAYSCALES);
-const EUKLIDFLOYDGRAYSCALES_PATH = path.join(directory, EUKLIDFLOYDGRAYSCALES);
-const CIEDEFLOYDGRAYSCALES_PATH = path.join(directory, CIEDEFLOYDGRAYSCALES);
-
-console.log(EUKLID_PATH)
-
 // Bildgröße des Mosaiks
 const mosaicWidth = 64;
 const mosaicHeight = 96;
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
 
-// POST-Route, um das Bild zu empfangen
-app.post('/', (req, res) => {
-    const { imageUrl } = req.body;
-
-    if (!imageUrl) {
-        return res.status(400).json({ error: 'No image data provided' });
-    }
-
+async function processMosaic(base64Image) {
     try {
-        // Das Bild aus dem Base64-String dekodieren
-        const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, ''); // Entfernt den Präfix
-        const buffer = Buffer.from(base64Data, 'base64');
+        // Base64-Bild dekodieren und in einen Buffer umwandeln
+        const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 
-        // Pfad zur Speicherung des bearbeiteten Bildes
-        const outputPath = path.join(__dirname, 'output', 'processed_image.png');
+        // Abrufen der Metadaten des empfangenen Bildes
+        const metadata = await sharp(imageBuffer).metadata();
+        const originalWidth = metadata.width;
+        const originalHeight = metadata.height;
 
-        // Das Bild auf der Festplatte speichern
-        fs.writeFileSync(outputPath, buffer);
+        console.log('Originalbreite:', originalWidth, 'Originalhöhe:', originalHeight);
 
-        // Erfolgreiche Rückmeldung an den Client
-        res.status(200).json({ success: true, message: 'Bild erfolgreich gespeichert!', path: outputPath });
-    } catch (error) {
-        console.error('Fehler beim Verarbeiten des Bildes:', error);
-        res.status(500).json({ success: false, message: 'Fehler beim Speichern des Bildes.' });
-    }
-});
+        // Berechnen des Skalierungsfaktors für das Raster
+        const scaleX = originalWidth / mosaicWidth;
+        const scaleY = originalHeight / mosaicHeight;
 
-async function processMosaic() {
-    try {
-        
-        // Empfangen des Base64-Bildes im Request
-        const { imageUrl } = req.body;
+        console.log('Skalierungsfaktoren:', 'scaleX:', scaleX, 'scaleY:', scaleY);
 
-        if (!imageUrl) {
-            return res.status(400).json({ error: 'Kein Bilddaten empfangen' });
-        }
+        // Extrahieren der Rohbilddaten in einem Buffer
+        const imageData = await sharp(imageBuffer).raw().toBuffer();
 
-        try {
-            // Das Bild aus dem Base64-String dekodieren
-            const base64Data = imageUrl.replace(/^data:image\/\w+;base64,/, ''); // Entfernt den Präfix
-            const imageBuffer = Buffer.from(base64Data, 'base64');
-
-            // Metadaten des Bildes abrufen
-            const metadata = await sharp(imageBuffer).metadata();
-            const originalWidth = metadata.width;
-            const originalHeight = metadata.height;
-
-            // Berechnen des Skalierungsfaktors für das Raster
-            const scaleX = originalWidth / mosaicWidth;
-            const scaleY = originalHeight / mosaicHeight;
-
-            // Extrahieren der Bilddaten in einem Buffer
-            const imageData = await sharp(imageBuffer).raw().toBuffer();
-
-            // Weitere Bildverarbeitung hier (falls gewünscht)
-            // Zum Beispiel: Skalieren, Zuschneiden, etc.
-
-            // Rückgabe der Metadaten oder der bearbeiteten Bilddaten
-            res.json({
-                width: originalWidth,
-                height: originalHeight,
-                scaleX: scaleX,
-                scaleY: scaleY,
-                imageData: imageData.toString('base64') // Optional: Base64 kodierte Bilddaten zurückgeben
-            });
-
-        } catch (error) {
-            console.error('Fehler bei der Bildverarbeitung:', error);
-            res.status(500).json({ error: 'Serverfehler bei der Bildverarbeitung' });
-        }
+        console.log('Bilddaten erfolgreich extrahiert.');
 
         // Arrays für die acht Varianten
         let mosaicPixelsEuclidean = [];
@@ -304,35 +241,7 @@ async function processMosaic() {
             }
         }
 
-        
-        const directory = path.dirname(__filename); // Aktuellen Verzeichnis-Pfad verwenden
-        const schwarzesbild = "schwarzesbild.png";
-        const schwarzesbild_path = path.join(directory, schwarzesbild);
-
-        // Bildgröße (Breite und Höhe in Pixel)
-        const width = 500;  // z. B. 500 Pixel
-        const height = 500; // z. B. 500 Pixel
-
-        // Schwarzes Bild erstellen (alle Pixel auf 0 setzen)
-        const blackImageBuffer = Buffer.alloc(width * height * 3, 0); // 3 Kanäle (RGB), alle Werte auf 0
-
-        // Bild speichern
-        sharp(blackImageBuffer, {
-            raw: {
-                width: width,
-                height: height,
-                channels: 3 // RGB
-            }
-        })
-            .toFile(schwarzesbild_path, (err) => {
-                if (err) {
-                    console.error('Fehler beim Speichern des schwarzen Bildes:', err);
-                } else {
-                    console.log(`Das schwarze Bild wurde erfolgreich unter '${schwarzesbild_path}' gespeichert.`);
-                }
-            });
-
-        createMosaicImage(mosaicPixelsEuclidean, EUKLID_PATH);
+        return mosaicPixelsEuclidean;
         //createMosaicImage(mosaicPixelsCIEDE, CIEDE_PATH);
         //createMosaicImage(mosaicPixelsEuclideanFloyd, EUKLIDFLOYD_PATH);
         //createMosaicImage(mosaicPixelsCIEDEFloyd, CIEDEFLOYD_PATH);
@@ -348,7 +257,7 @@ async function processMosaic() {
 
 
 // Funktion zum Erstellen des Mosaikbildes
-function createMosaicImage(mosaicPixels, outputPath) {
+function createMosaicImage(mosaicPixels) {
     let mosaicImageBuffer = Buffer.alloc(mosaicWidth * mosaicHeight * blockSize * blockSize * 4); // 4 Werte pro Pixel (RGB + Alpha)
 
     // Mosaik-Pixel als Kreise ins Buffer einfügen
@@ -409,88 +318,72 @@ function createMosaicImage(mosaicPixels, outputPath) {
         }
     }
 
-    // Finales Bild mit schwarzem Rand erstellen
-    sharp(finalImageBuffer, { raw: { width: mosaicWidthWithBorder, height: mosaicHeightWithBorder, channels: 4 } })
-        .toFile(outputPath, (err) => {
-            if (err) {
-                console.error("Fehler beim Speichern des Mosaiks mit Rand:", err);
-            } else {
-                console.log(`Das Mosaik mit Rand wurde erfolgreich unter '${outputPath}' gespeichert.`);
-            }
+    // Finales Bild mit Rand erstellen und als Buffer zurückgeben
+    return sharp(finalImageBuffer, { raw: { width: mosaicWidthWithBorder, height: mosaicHeightWithBorder, channels: 4 } })
+        .toBuffer()
+        .then((buffer) => {
+            console.log("Das Mosaik mit Rand wurde erfolgreich erstellt.");
+            return buffer; // Finaler Buffer wird zurückgegeben
+        })
+        .catch((err) => {
+            console.error("Fehler beim Erstellen des Mosaiks:", err);
+            throw err; // Fehler weitergeben
         });
 }
 
-async function run() {
+// `run`-Funktion für die Verarbeitung
+async function run(base64Image) {
     console.log("Mosaik wird generiert...");
     try {
-        // Warten bis die Mosaik-Erstellung abgeschlossen ist
-        await processMosaic();
+        const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
+        const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
 
-        // Start der Mosaik-Erstellung
         const baseImages = [
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Couch.png",
-                outputPath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/results/couch.png",
                 overlayPosition: { left: 1474, top: 280 },
                 scaleFactor: 0.26
             },
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Desk_1.png",
-                outputPath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/results/desk1.png",
                 overlayPosition: { left: 1325, top: 181 },
                 scaleFactor: 0.285
             },
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Desk_2.png",
-                outputPath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/results/desk2.png",
                 overlayPosition: { left: 1420, top: 200 },
                 scaleFactor: 0.285
             }
-        ];        
-
-        const overlayImagePaths = [
-            EUKLID_PATH, //CIEDE_PATH, EUKLIDFLOYD_PATH, CIEDEFLOYD_PATH, EUKLIDGRAYSCALES_PATH, CIEDEGRAYSCALES_PATH, EUKLIDFLOYDGRAYSCALES_PATH, CIEDEFLOYDGRAYSCALES_PATH
         ];
 
         const targetResolution = { width: 2084, height: 3095 };
+        const resultBuffers = [];
 
-        for (const { baseImagePath, outputPath, overlayPosition, scaleFactor } of baseImages) {
-            for (const [index, overlayImagePath] of overlayImagePaths.entries()) {
-                await sharp(overlayImagePath)
-                    .resize(targetResolution.width, targetResolution.height)
-                    .toBuffer()
-                    .then(resizedBuffer => {
-                        return sharp(resizedBuffer)
-                            .metadata()
-                            .then(metadata => {
-                                const newWidth = Math.round(metadata.width * scaleFactor);
-                                const newHeight = Math.round(metadata.height * scaleFactor);
+        for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+            const resizedBuffer = await sharp(mosaicBuffer)
+                .resize(targetResolution.width, targetResolution.height)
+                .toBuffer();
 
-                                return sharp(resizedBuffer)
-                                    .resize(newWidth, newHeight)
-                                    .toBuffer()
-                                    .then(overlayBuffer => {
-                                        const newOutputPath = outputPath.replace(".png", `_${overlayImagePath.split("/").pop().replace(".png", "")}.png`);
+            const metadata = await sharp(resizedBuffer).metadata();
+            const newWidth = Math.round(metadata.width * scaleFactor);
+            const newHeight = Math.round(metadata.height * scaleFactor);
 
-                                        return sharp(baseImagePath)
-                                            .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
-                                            .toFile(newOutputPath)
-                                            .then(() => {
-                                                console.log(`Das Bild wurde erfolgreich kombiniert und gespeichert: ${newOutputPath}`);
-                                            });
-                                    });
-                            });
-                    })
-                    .catch(err => {
-                        console.error('Fehler beim Zusammenfügen der Bilder:', err);
-                    });
-            }
+            const overlayBuffer = await sharp(resizedBuffer)
+                .resize(newWidth, newHeight)
+                .toBuffer();
+
+            const combinedBuffer = await sharp(baseImagePath)
+                .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
+                .toBuffer();
+
+            resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
         }
 
+        return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
-        console.error("Fehler beim Warten auf Mosaik-Prozess:", error);
+        console.error("Fehler bei der Mosaik-Erstellung:", error);
+        throw error; // Fehler weitergeben
     }
 }
 
-// Starten der Funktion
-run();
+module.exports = { run };
