@@ -338,7 +338,6 @@ async function run(base64Image) {
     try {
         const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-        console.log('Mosaic Buffer Metadaten:', metadata);
         
         const baseImages = [
             {
