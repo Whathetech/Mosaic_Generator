@@ -134,6 +134,11 @@ async function processMosaic(base64Image) {
 
         // Extrahieren der Rohbilddaten in einem Buffer
         const imageData = await sharp(imageBuffer).raw().toBuffer();
+        console.log('imageData Länge:', imageData.length);
+        const subarrayBuffer = imageData.subarray(0, 3); // Alternative
+        console.log('Erster Pixel:', subarrayBuffer);
+        const subarrayBuffer2 = imageData.subarray(3, 6); // Alternative
+        console.log('Erster Pixel:', subarrayBuffer2);
 
         console.log('Bilddaten erfolgreich extrahiert.');
 
