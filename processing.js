@@ -239,6 +239,8 @@ async function processMosaic(base64Image) {
                 mosaicPixelsCIEDEFloydGrayscales.push(closestColorCIEDEFloydGrayscales);
             }
         }
+        console.log('Inhalt von mosaicPixelsEuclidean:', mosaicPixelsEuclidean);
+        console.log('Anzahl der berechneten Zellen:', mosaicPixelsEuclidean.length);
 
         return mosaicPixelsEuclidean;
         //createMosaicImage(mosaicPixelsCIEDE, CIEDE_PATH);
