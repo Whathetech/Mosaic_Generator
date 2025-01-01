@@ -124,16 +124,12 @@ async function processMosaic(base64Image) {
         const originalWidth = metadata.width;
         const originalHeight = metadata.height;
 
-        console.log('Bild-Metadaten:', metadata);
-
         // Berechnen des Skalierungsfaktors für das Raster
         const scaleX = originalWidth / mosaicWidth;
         const scaleY = originalHeight / mosaicHeight;
 
         // Extrahieren der Rohbilddaten in einem Buffer
         const imageData = await sharp(imageBuffer).raw().toBuffer();
-        console.log('imagedata-Metadaten:', imageData);
-        console.log('imageData Länge:', imageData.length);
         const subarrayBuffer = imageData.subarray(0, 3); // Alternative
         console.log('Erster Pixel:', subarrayBuffer);
         const subarrayBuffer2 = imageData.subarray(3, 6); // Alternative
