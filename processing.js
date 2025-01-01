@@ -361,7 +361,6 @@ async function run(base64Image) {
 
         const targetResolution = { width: 2084, height: 3095 };
         const resultBuffers = [];
-        
 
         for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
             console.log(`Lade Bild von: ${baseImagePath}`);
@@ -387,7 +386,7 @@ async function run(base64Image) {
             resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
             
         }
-
+        resultBuffers.push(mosaicBuffer);
         return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
