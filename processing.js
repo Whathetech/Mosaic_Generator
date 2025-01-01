@@ -1,6 +1,5 @@
 // Module importieren
 const axios = require('axios');
-const path = require('path');
 const sharp = require('sharp');
 const colorDiff = require('color-diff');
 const { colors, grayscales } = require('./colors.js');
@@ -258,7 +257,7 @@ async function processMosaic(base64Image) {
 
 // Funktion zum Erstellen des Mosaikbildes
 function createMosaicImage(mosaicPixels) {
-    console.log('Stelle2');
+    
     let mosaicImageBuffer = Buffer.alloc(mosaicWidth * mosaicHeight * blockSize * blockSize * 4); // 4 Werte pro Pixel (RGB + Alpha)
 
     // Mosaik-Pixel als Kreise ins Buffer einfügen
@@ -331,20 +330,19 @@ function createMosaicImage(mosaicPixels) {
     });
 }
 
-// `run`-Funktion für die Verarbeitung
+async function downloadImage(url) {
+    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    return Buffer.from(response.data);
+}
+
 async function run(base64Image) {
     console.log("Mosaik wird generiert...");
     try {
-        const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
-        console.log('Stelle1');
+        const mosaicPixels = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
+        
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-        console.log('Stelle4');
-        try {
-            const metadata = await sharp(mosaicBuffer).metadata();
-            console.log('Mosaic Buffer Metadaten:', metadata);
-        } catch (err) {
-            console.error('Fehler beim Analysieren des Mosaic Buffers:', err.message);
-        }
+        
+
         const baseImages = [
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Couch.png",
@@ -365,26 +363,36 @@ async function run(base64Image) {
 
         const targetResolution = { width: 2084, height: 3095 };
         const resultBuffers = [];
-        console.log('Stelle5');
+        
+
         for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+            console.log(`Lade Bild von: ${baseImagePath}`);
+            const baseImageBuffer = await downloadImage(baseImagePath); // Lade das Bild herunter
+            console.log('Hintergrundbild erfolgreich heruntergeladen.');
+
             const resizedBuffer = await sharp(mosaicBuffer)
                 .resize(targetResolution.width, targetResolution.height)
                 .toBuffer();
-                console.log('Stelle6');
+            
+
             const metadata = await sharp(resizedBuffer).metadata();
             const newWidth = Math.round(metadata.width * scaleFactor);
             const newHeight = Math.round(metadata.height * scaleFactor);
-            console.log('Stelle7');
+            
+
             const overlayBuffer = await sharp(resizedBuffer)
                 .resize(newWidth, newHeight)
                 .toBuffer();
-                console.log('Stelle8');
-            const combinedBuffer = await sharp(baseImagePath)
+            console.log('Stelle8');
+
+            const combinedBuffer = await sharp(baseImageBuffer) // Verwende den heruntergeladenen Buffer
                 .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
                 .toBuffer();
-                console.log('Stelle9');
+            console.log('Stelle9');
+
             resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
         }
+
         console.log('Stelle10');
         return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
