@@ -360,27 +360,27 @@ async function run(base64Image) {
 
         const targetResolution = { width: 2084, height: 3095 };
         const resultBuffers = [];
-
+        console.log('Stelle5');
         for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
             const resizedBuffer = await sharp(mosaicBuffer)
                 .resize(targetResolution.width, targetResolution.height)
                 .toBuffer();
-
+                console.log('Stelle6');
             const metadata = await sharp(resizedBuffer).metadata();
             const newWidth = Math.round(metadata.width * scaleFactor);
             const newHeight = Math.round(metadata.height * scaleFactor);
-
+            console.log('Stelle7');
             const overlayBuffer = await sharp(resizedBuffer)
                 .resize(newWidth, newHeight)
                 .toBuffer();
-
+                console.log('Stelle8');
             const combinedBuffer = await sharp(baseImagePath)
                 .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
                 .toBuffer();
-
+                console.log('Stelle9');
             resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
         }
-
+        console.log('Stelle10');
         return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
