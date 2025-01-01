@@ -339,9 +339,7 @@ async function run(base64Image) {
     console.log("Mosaik wird generiert...");
     try {
         const mosaicPixels = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
-        
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-        
 
         const baseImages = [
             {
@@ -373,27 +371,23 @@ async function run(base64Image) {
             const resizedBuffer = await sharp(mosaicBuffer)
                 .resize(targetResolution.width, targetResolution.height)
                 .toBuffer();
-            
 
             const metadata = await sharp(resizedBuffer).metadata();
             const newWidth = Math.round(metadata.width * scaleFactor);
             const newHeight = Math.round(metadata.height * scaleFactor);
-            
 
             const overlayBuffer = await sharp(resizedBuffer)
                 .resize(newWidth, newHeight)
                 .toBuffer();
-            console.log('Stelle8');
 
             const combinedBuffer = await sharp(baseImageBuffer) // Verwende den heruntergeladenen Buffer
                 .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
                 .toBuffer();
-            console.log('Stelle9');
 
             resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
+            resultBuffers.push(resizedBuffer);
         }
 
-        console.log('Stelle10');
         return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
