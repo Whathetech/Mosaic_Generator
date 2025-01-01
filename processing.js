@@ -385,9 +385,9 @@ async function run(base64Image) {
                 .toBuffer();
 
             resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
-            resultBuffers.push(resizedBuffer);
+            
         }
-
+        resultBuffers.push(resizedBuffer);
         return resultBuffers; // Gib alle Buffers zurück
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
