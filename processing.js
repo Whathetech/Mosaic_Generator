@@ -258,6 +258,7 @@ async function processMosaic(base64Image) {
 
 // Funktion zum Erstellen des Mosaikbildes
 function createMosaicImage(mosaicPixels) {
+    console.log('Stelle2');
     let mosaicImageBuffer = Buffer.alloc(mosaicWidth * mosaicHeight * blockSize * blockSize * 4); // 4 Werte pro Pixel (RGB + Alpha)
 
     // Mosaik-Pixel als Kreise ins Buffer einfügen
@@ -317,7 +318,7 @@ function createMosaicImage(mosaicPixels) {
             }
         }
     }
-
+    console.log('Stelle3');
     // Finales Bild mit Rand erstellen und als Buffer zurückgeben
     return sharp(finalImageBuffer, { raw: { width: mosaicWidthWithBorder, height: mosaicHeightWithBorder, channels: 4 } })
         .toBuffer()
@@ -336,13 +337,9 @@ async function run(base64Image) {
     console.log("Mosaik wird generiert...");
     try {
         const mosaicPixels   = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
+        console.log('Stelle1');
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
-        
-        const metadata = await sharp(mosaicBuffer).metadata();
-
-        console.log('Metadaten des mosaicBuffer:', metadata);
-        console.log('Bildformat:', metadata.format);
-
+        console.log('Stelle4');
         const baseImages = [
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Couch.png",
