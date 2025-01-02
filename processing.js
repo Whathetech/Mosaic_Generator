@@ -124,6 +124,8 @@ async function processMosaic(base64Image) {
         const originalWidth = metadata.width;
         const originalHeight = metadata.height;
 
+        console.log('Auflösung des Bildes:', `${originalWidth} x ${originalHeight}`);
+        
         // Berechnen des Skalierungsfaktors für das Raster
         const scaleX = originalWidth / mosaicWidth;
         const scaleY = originalHeight / mosaicHeight;
@@ -236,7 +238,6 @@ async function processMosaic(base64Image) {
                 mosaicPixelsCIEDEFloydGrayscales.push(closestColorCIEDEFloydGrayscales);
             }
         }
-        console.log('Inhalt von mosaicPixelsEuclidean:', mosaicPixelsEuclidean);
 
         return mosaicPixelsEuclidean;
         //createMosaicImage(mosaicPixelsCIEDE, CIEDE_PATH);
@@ -319,7 +320,6 @@ function createMosaicImage(mosaicPixels) {
     .png() // Konvertiere die Rohdaten in PNG
     .toBuffer()
     .then((buffer) => {
-        console.log("Das Mosaik wurde erfolgreich in PNG konvertiert.");
         return buffer;
     })
     .catch((err) => {
@@ -334,7 +334,6 @@ async function downloadImage(url) {
 }
 
 async function run(base64Image) {
-    console.log("Mosaik wird generiert...");
     try {
         const mosaicPixels = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
         const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
@@ -361,10 +360,7 @@ async function run(base64Image) {
         const resultBuffers = [];
 
         for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
-            console.log(`Lade Bild von: ${baseImagePath}`);
             const baseImageBuffer = await downloadImage(baseImagePath); // Lade das Bild herunter
-            console.log('Hintergrundbild erfolgreich heruntergeladen.');
-
             const resizedBuffer = await sharp(mosaicBuffer)
                 .resize(targetResolution.width, targetResolution.height)
                 .toBuffer();
