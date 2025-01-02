@@ -389,40 +389,29 @@ async function run(base64Image) {
             }
         ];
 
-        const mosaicBuffers = [
-            mosaicBufferEuclidean,
-            mosaicBufferCIEDE,
-            mosaicBufferEuclideanFloyd,
-            mosaicBufferCIEDEFloyd,
-            mosaicBufferEuclideanGrayscales,
-            mosaicBufferCIEDEGrayscales,
-            mosaicBufferEuclideanFloydGrayscales,
-            mosaicBufferCIEDEFloydGrayscales
-        ];
-        
-        for (const mosaicBuffer of mosaicBuffers) {
-            for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
-                const baseImageBuffer = await downloadImage(baseImagePath);
-                const resizedBuffer = await sharp(mosaicBuffer)
-                    .resize(targetResolution.width, targetResolution.height)
-                    .toBuffer();
-        
-                const metadata = await sharp(resizedBuffer).metadata();
-                const newWidth = Math.round(metadata.width * scaleFactor);
-                const newHeight = Math.round(metadata.height * scaleFactor);
-        
-                const overlayBuffer = await sharp(resizedBuffer)
-                    .resize(newWidth, newHeight)
-                    .toBuffer();
-        
-                const combinedBuffer = await sharp(baseImageBuffer)
-                    .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
-                    .toBuffer();
-        
-                resultBuffers.push(combinedBuffer);
-            }
+        const targetResolution = { width: 2084, height: 3095 };
+
+        for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+            const baseImageBuffer = await downloadImage(baseImagePath);
+            const resizedBuffer = await sharp(mosaicBufferEuclidean)
+                .resize(targetResolution.width, targetResolution.height)
+                .toBuffer();
+
+            const metadata = await sharp(resizedBuffer).metadata();
+            const newWidth = Math.round(metadata.width * scaleFactor);
+            const newHeight = Math.round(metadata.height * scaleFactor);
+
+            const overlayBuffer = await sharp(resizedBuffer)
+                .resize(newWidth, newHeight)
+                .toBuffer();
+
+            const combinedBuffer = await sharp(baseImageBuffer)
+                .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
+                .toBuffer();
+
+            resultBuffers.push(combinedBuffer);
         }
-        
+
         return resultBuffers;
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
