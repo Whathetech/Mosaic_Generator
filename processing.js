@@ -255,7 +255,6 @@ async function processMosaic(base64Image) {
     }
 }
 
-
 // Funktion zum Erstellen des Mosaikbildes
 function createMosaicImage(mosaicPixels) {
     
@@ -392,26 +391,28 @@ async function run(base64Image) {
 
         const targetResolution = { width: 2084, height: 3095 };
 
-        for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
-            const baseImageBuffer = await downloadImage(baseImagePath);
-            const resizedBuffer = await sharp(mosaicBufferEuclidean) // Beispiel mit Euklid-Mosaik
-                .resize(targetResolution.width, targetResolution.height)
-                .toBuffer();
-
-            const metadata = await sharp(resizedBuffer).metadata();
-            const newWidth = Math.round(metadata.width * scaleFactor);
-            const newHeight = Math.round(metadata.height * scaleFactor);
-
-            const overlayBuffer = await sharp(resizedBuffer)
-                .resize(newWidth, newHeight)
-                .toBuffer();
-
-            const combinedBuffer = await sharp(baseImageBuffer)
-                .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
-                .toBuffer();
-
-            resultBuffers.push(combinedBuffer);
-        }
+        for (const mosaicBuffer of mosaicBuffers) {
+            for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+                const baseImageBuffer = await downloadImage(baseImagePath);
+                const resizedBuffer = await sharp(mosaicBuffer)
+                    .resize(targetResolution.width, targetResolution.height)
+                    .toBuffer();
+        
+                const metadata = await sharp(resizedBuffer).metadata();
+                const newWidth = Math.round(metadata.width * scaleFactor);
+                const newHeight = Math.round(metadata.height * scaleFactor);
+        
+                const overlayBuffer = await sharp(resizedBuffer)
+                    .resize(newWidth, newHeight)
+                    .toBuffer();
+        
+                const combinedBuffer = await sharp(baseImageBuffer)
+                    .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
+                    .toBuffer();
+        
+                resultBuffers.push(combinedBuffer);
+            }
+        }        
 
         return resultBuffers;
     } catch (error) {
