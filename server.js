@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
-const sharp = require('sharp');
 
 // CORS-Konfiguration
 const corsOptions = {
@@ -27,25 +26,18 @@ app.post('/upload', async (req, res) => {
     }
 
     try {
+
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
         const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
 
-        // Buffers skalieren und in Base64 kodieren
-        const base64Images = await Promise.all(
-            resultBuffers.map(async (buffer, index) => {
-                console.log(`Buffer ${index + 1} - Original Länge: ${buffer.length}`);
-                
-                // Verkleinere die Buffer um 50%
-                const resizedBuffer = await sharp(buffer)
-                    .resize({ width: Math.round(metadata.width / 2), height: Math.round(metadata.height / 2) }) // Reduziere um 50%
-                    .toBuffer();
-
-                console.log(`Buffer ${index + 1} - Verkleinerte Länge: ${resizedBuffer.length}`);
-                return `data:image/png;base64,${resizedBuffer.toString('base64')}`;
-            })
-        );
+        // Buffers in Base64 kodieren
+        const base64Images = resultBuffers.map((buffer, index) => {
+            console.log(`Buffer ${index + 1} - Länge: ${buffer.length}`);
+            return `data:image/png;base64,${buffer.toString('base64')}`;
+        });
 
         // Rückgabe der Bilder an Shopify
+
         res.status(200).json({
             success: true,
             images: base64Images, // Array mit Base64-Bildern
@@ -55,7 +47,6 @@ app.post('/upload', async (req, res) => {
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
     }
 });
-
 
 // Server starten
 const PORT = process.env.PORT || 3000;
