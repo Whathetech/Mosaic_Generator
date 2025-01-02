@@ -42,10 +42,19 @@ app.post('/upload', async (req, res) => {
 
         console.log('Alle Bilder in Base64 umgewandelt. Anzahl:', base64Images.length);
 
-        // Rückgabe der Bilder an Shopify
+        // Aufteilen in Pakete
+        const batchSize = 5; // Anzahl der Bilder pro Paket
+        const batches = [];
+        for (let i = 0; i < base64Images.length; i += batchSize) {
+            batches.push(base64Images.slice(i, i + batchSize));
+        }
+
+        console.log('Bilder in Pakete aufgeteilt. Anzahl der Pakete:', batches.length);
+
+        // Rückgabe der Pakete an Shopify
         res.status(200).json({
             success: true,
-            images: base64Images, // Array mit Base64-Bildern
+            batches: batches // Array mit Paketen, jedes Paket ist ein Array von Base64-Bildern
         });
 
         console.log('Antwort erfolgreich an den Client gesendet:', new Date());
