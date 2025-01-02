@@ -412,6 +412,27 @@ async function run(base64Image) {
             resultBuffers.push(combinedBuffer);
         }
 
+        for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+            const baseImageBuffer = await downloadImage(baseImagePath);
+            const resizedBuffer = await sharp(mosaicBufferCIEDE)
+                .resize(targetResolution.width, targetResolution.height)
+                .toBuffer();
+
+            const metadata = await sharp(resizedBuffer).metadata();
+            const newWidth = Math.round(metadata.width * scaleFactor);
+            const newHeight = Math.round(metadata.height * scaleFactor);
+
+            const overlayBuffer = await sharp(resizedBuffer)
+                .resize(newWidth, newHeight)
+                .toBuffer();
+
+            const combinedBuffer = await sharp(baseImageBuffer)
+                .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
+                .toBuffer();
+
+            resultBuffers.push(combinedBuffer);
+        }
+
         return resultBuffers;
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
