@@ -26,7 +26,6 @@ app.post('/upload', async (req, res) => {
     }
 
     try {
-
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
         const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
 
@@ -37,7 +36,6 @@ app.post('/upload', async (req, res) => {
         });
 
         // Rückgabe der Bilder an Shopify
-
         res.status(200).json({
             success: true,
             images: base64Images, // Array mit Base64-Bildern
@@ -50,6 +48,9 @@ app.post('/upload', async (req, res) => {
 
 // Server starten
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server läuft auf Port ${PORT}`);
 });
+
+// Timeout auf 5 Minuten setzen
+server.timeout = 5 * 60 * 1000; // 5 Minuten in Millisekunden
