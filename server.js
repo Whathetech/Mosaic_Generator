@@ -14,7 +14,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Middleware für JSON-Parsing
-app.use(express.json({ limit: '200mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
+app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
