@@ -370,6 +370,17 @@ async function run(base64Image) {
             mosaicBufferCIEDEFloydGrayscales
         ];
 
+        const mosaicBuffers = [
+            mosaicBufferEuclidean,
+            mosaicBufferCIEDE,
+            mosaicBufferEuclideanFloyd,
+            mosaicBufferCIEDEFloyd,
+            mosaicBufferEuclideanGrayscales,
+            mosaicBufferCIEDEGrayscales,
+            mosaicBufferEuclideanFloydGrayscales,
+            mosaicBufferCIEDEFloydGrayscales
+        ];
+        
         // Weitere Verarbeitung mit Hintergrundbildern
         const baseImages = [
             {
