@@ -340,8 +340,8 @@ async function run(base64Image) {
         const {
             mosaicPixelsEuclidean,
             mosaicPixelsCIEDE,
-            mosaicPixelsEuclideanFloyd,
-            mosaicPixelsCIEDEFloyd,
+            //mosaicPixelsEuclideanFloyd,
+            //mosaicPixelsCIEDEFloyd,
             //mosaicPixelsEuclideanGrayscales,
             //mosaicPixelsCIEDEGrayscales,
             //mosaicPixelsEuclideanFloydGrayscales,
@@ -352,8 +352,8 @@ async function run(base64Image) {
         const mosaicBuffers = [
             await createMosaicImage(mosaicPixelsEuclidean),
             await createMosaicImage(mosaicPixelsCIEDE),
-            await createMosaicImage(mosaicPixelsEuclideanFloyd),
-            await createMosaicImage(mosaicPixelsCIEDEFloyd),
+            //await createMosaicImage(mosaicPixelsEuclideanFloyd),
+            //await createMosaicImage(mosaicPixelsCIEDEFloyd),
             //await createMosaicImage(mosaicPixelsEuclideanGrayscales),
             //await createMosaicImage(mosaicPixelsCIEDEGrayscales),
             //await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales),
