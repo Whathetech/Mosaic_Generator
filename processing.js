@@ -124,29 +124,15 @@ async function processMosaic(base64Image) {
         const originalWidth = metadata.width;
         const originalHeight = metadata.height;
 
-        // Berechnung der Anzahl der Pixel
-        const numberOfPixels = originalWidth * originalHeight;
-
-        // Anzeige der Informationen in der Konsole
-        console.log('Auflösung des Bildes:', `${originalWidth} x ${originalHeight}`);
-        console.log('Anzahl der Pixel:', numberOfPixels);
-
-        // Verifizierung mit der Länge von imageData
-        const imageData = await sharp(imageBuffer).raw().toBuffer();
-        const numberOfChannels = 3; // RGB-Kanäle
-        console.log('Länge von imageData:', imageData.length);
-        console.log('Erwartete Länge:', numberOfPixels * numberOfChannels);
-
-        // Überprüfung, ob die Länge übereinstimmt
-        if (imageData.length === numberOfPixels * numberOfChannels) {
-            console.log('imageData stimmt mit der berechneten Anzahl der Pixel überein.');
-        } else {
-            console.error('Mismatch zwischen imageData und den Metadaten.');
-        }
-
         // Berechnen des Skalierungsfaktors für das Raster
         const scaleX = originalWidth / mosaicWidth;
         const scaleY = originalHeight / mosaicHeight;
+
+        // Extrahieren der Rohbilddaten in einem Buffer (nur RGB)
+        const imageData = await sharp(imageBuffer)
+        .removeAlpha() // Entfernt den Alpha-Kanal
+        .raw()
+        .toBuffer();
 
         // Arrays für die acht Varianten
         let mosaicPixelsEuclidean = [];
