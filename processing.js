@@ -124,22 +124,25 @@ async function processMosaic(base64Image) {
         const originalWidth = metadata.width;
         const originalHeight = metadata.height;
 
-        // Berechnen des Skalierungsfaktors für das Raster
-        const scaleX = originalWidth / mosaicWidth;
-        const scaleY = originalHeight / mosaicHeight;
+        // Berechnung der Anzahl der Pixel
+        const numberOfPixels = originalWidth * originalHeight;
 
-        // Extrahieren der Rohbilddaten in einem Buffer
+        // Anzeige der Informationen in der Konsole
+        console.log('Auflösung des Bildes:', `${originalWidth} x ${originalHeight}`);
+        console.log('Anzahl der Pixel:', numberOfPixels);
+
+        // Verifizierung mit der Länge von imageData
         const imageData = await sharp(imageBuffer).raw().toBuffer();
-        const subarrayBuffer = imageData.subarray(0, 3); // Alternative
-        console.log('Erster Pixel:', subarrayBuffer);
-        const subarrayBuffer2 = imageData.subarray(3, 6); // Alternative
-        console.log('Zweiter Pixel:', subarrayBuffer2);
-        const subarrayBuffer3 = imageData.subarray(6, 9); // Alternative
-        console.log('Zweiter Pixel:', subarrayBuffer3);
-        const subarrayBuffer4 = imageData.subarray(9, 12); // Alternative
-        console.log('Zweiter Pixel:', subarrayBuffer4);
-        const subarrayBuffer5 = imageData.subarray(12, 15); // Alternative
-        console.log('Zweiter Pixel:', subarrayBuffer5);
+        const numberOfChannels = 3; // RGB-Kanäle
+        console.log('Länge von imageData:', imageData.length);
+        console.log('Erwartete Länge:', numberOfPixels * numberOfChannels);
+
+        // Überprüfung, ob die Länge übereinstimmt
+        if (imageData.length === numberOfPixels * numberOfChannels) {
+            console.log('imageData stimmt mit der berechneten Anzahl der Pixel überein.');
+        } else {
+            console.error('Mismatch zwischen imageData und den Metadaten.');
+        }
 
         // Arrays für die acht Varianten
         let mosaicPixelsEuclidean = [];
