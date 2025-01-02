@@ -239,14 +239,16 @@ async function processMosaic(base64Image) {
             }
         }
 
-        return mosaicPixelsEuclidean;
-        //createMosaicImage(mosaicPixelsCIEDE, CIEDE_PATH);
-        //createMosaicImage(mosaicPixelsEuclideanFloyd, EUKLIDFLOYD_PATH);
-        //createMosaicImage(mosaicPixelsCIEDEFloyd, CIEDEFLOYD_PATH);
-        //createMosaicImage(mosaicPixelsEuclideanGrayscales, EUKLIDGRAYSCALES_PATH);
-        //createMosaicImage(mosaicPixelsCIEDEGrayscales, CIEDEGRAYSCALES_PATH);
-        //createMosaicImage(mosaicPixelsEuclideanFloydGrayscales, EUKLIDFLOYDGRAYSCALES_PATH);
-        //createMosaicImage(mosaicPixelsCIEDEFloydGrayscales, CIEDEFLOYDGRAYSCALES_PATH);
+        return {
+            mosaicPixelsEuclidean,
+            mosaicPixelsCIEDE,
+            mosaicPixelsEuclideanFloyd,
+            mosaicPixelsCIEDEFloyd,
+            mosaicPixelsEuclideanGrayscales,
+            mosaicPixelsCIEDEGrayscales,
+            mosaicPixelsEuclideanFloydGrayscales,
+            mosaicPixelsCIEDEFloydGrayscales
+        };
 
     } catch (err) {
         console.error("Fehler beim Laden des Bildes:", err);
@@ -293,7 +295,7 @@ function createMosaicImage(mosaicPixels) {
     const mosaicWidthWithBorder = mosaicWidth * blockSize + 2 * borderWidth;
     const mosaicHeightWithBorder = mosaicHeight * blockSize + 2 * borderWidth;
 
-    let finalImageBuffer = Buffer.alloc(mosaicWidthWithBorder * mosaicHeightWithBorder * 4); // 4 Werte pro Pixel (RGBA)
+    let finalImageBuffer = Buffer.alloc(mosaicWidthWithBorder * mosaicHeightWithBorder * 4);
 
     // Setze den schwarzen Rand
     for (let y = 0; y < mosaicHeightWithBorder; y++) {
@@ -333,11 +335,75 @@ async function downloadImage(url) {
     return Buffer.from(response.data);
 }
 
+async function processMosaic(base64Image) {
+    try {
+        // ... [Dekodierung und Skalierung wie in deinem Code]
+
+        // Arrays für die acht Varianten
+        let mosaicPixelsEuclidean = [];
+        let mosaicPixelsCIEDE = [];
+        let mosaicPixelsEuclideanFloyd = [];
+        let mosaicPixelsCIEDEFloyd = [];
+        let mosaicPixelsEuclideanGrayscales = [];
+        let mosaicPixelsCIEDEGrayscales = [];
+        let mosaicPixelsEuclideanFloydGrayscales = [];
+        let mosaicPixelsCIEDEFloydGrayscales = [];
+
+        // ... [Verarbeitungsschleifen wie in deinem Code]
+
+        return {
+            mosaicPixelsEuclidean,
+            mosaicPixelsCIEDE,
+            mosaicPixelsEuclideanFloyd,
+            mosaicPixelsCIEDEFloyd,
+            mosaicPixelsEuclideanGrayscales,
+            mosaicPixelsCIEDEGrayscales,
+            mosaicPixelsEuclideanFloydGrayscales,
+            mosaicPixelsCIEDEFloydGrayscales
+        };
+    } catch (err) {
+        console.error("Fehler beim Laden des Bildes:", err);
+        throw err;
+    }
+}
+
 async function run(base64Image) {
     try {
-        const mosaicPixels = await processMosaic(base64Image); // Erzeugt die Mosaik-Pixel-Daten
-        const mosaicBuffer = await createMosaicImage(mosaicPixels); // Generiert das Mosaik-Bild
+        // Alle Varianten von Mosaik-Daten abrufen
+        const {
+            mosaicPixelsEuclidean,
+            mosaicPixelsCIEDE,
+            mosaicPixelsEuclideanFloyd,
+            mosaicPixelsCIEDEFloyd,
+            mosaicPixelsEuclideanGrayscales,
+            mosaicPixelsCIEDEGrayscales,
+            mosaicPixelsEuclideanFloydGrayscales,
+            mosaicPixelsCIEDEFloydGrayscales
+        } = await processMosaic(base64Image);
 
+        // Mosaik-Bilder für alle Varianten erstellen
+        const mosaicBufferEuclidean = await createMosaicImage(mosaicPixelsEuclidean);
+        const mosaicBufferCIEDE = await createMosaicImage(mosaicPixelsCIEDE);
+        const mosaicBufferEuclideanFloyd = await createMosaicImage(mosaicPixelsEuclideanFloyd);
+        const mosaicBufferCIEDEFloyd = await createMosaicImage(mosaicPixelsCIEDEFloyd);
+        const mosaicBufferEuclideanGrayscales = await createMosaicImage(mosaicPixelsEuclideanGrayscales);
+        const mosaicBufferCIEDEGrayscales = await createMosaicImage(mosaicPixelsCIEDEGrayscales);
+        const mosaicBufferEuclideanFloydGrayscales = await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales);
+        const mosaicBufferCIEDEFloydGrayscales = await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales);
+
+        // Ergebnisse an `resultBuffers` anhängen
+        const resultBuffers = [
+            mosaicBufferEuclidean,
+            mosaicBufferCIEDE,
+            mosaicBufferEuclideanFloyd,
+            mosaicBufferCIEDEFloyd,
+            mosaicBufferEuclideanGrayscales,
+            mosaicBufferCIEDEGrayscales,
+            mosaicBufferEuclideanFloydGrayscales,
+            mosaicBufferCIEDEFloydGrayscales
+        ];
+
+        // Weitere Verarbeitung mit Hintergrundbildern
         const baseImages = [
             {
                 baseImagePath: "https://raw.githubusercontent.com/Whathetech/Mosaic_Generator/36acef7c66d34ef4ede11130e70328eae7d4cfcd/background_images/Cropped_Portrait/Couch.png",
@@ -357,11 +423,10 @@ async function run(base64Image) {
         ];
 
         const targetResolution = { width: 2084, height: 3095 };
-        const resultBuffers = [];
 
         for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
-            const baseImageBuffer = await downloadImage(baseImagePath); // Lade das Bild herunter
-            const resizedBuffer = await sharp(mosaicBuffer)
+            const baseImageBuffer = await downloadImage(baseImagePath);
+            const resizedBuffer = await sharp(mosaicBufferEuclidean) // Beispiel mit Euklid-Mosaik
                 .resize(targetResolution.width, targetResolution.height)
                 .toBuffer();
 
@@ -373,18 +438,17 @@ async function run(base64Image) {
                 .resize(newWidth, newHeight)
                 .toBuffer();
 
-            const combinedBuffer = await sharp(baseImageBuffer) // Verwende den heruntergeladenen Buffer
+            const combinedBuffer = await sharp(baseImageBuffer)
                 .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
                 .toBuffer();
 
-            resultBuffers.push(combinedBuffer); // Füge das kombinierte Bild zum Ergebnis-Array hinzu
-            
+            resultBuffers.push(combinedBuffer);
         }
-        resultBuffers.push(mosaicBuffer);
-        return resultBuffers; // Gib alle Buffers zurück
+
+        return resultBuffers;
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
-        throw error; // Fehler weitergeben
+        throw error;
     }
 }
 
