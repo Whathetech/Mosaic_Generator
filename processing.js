@@ -342,10 +342,10 @@ async function run(base64Image) {
             mosaicPixelsCIEDE,
             mosaicPixelsEuclideanFloyd,
             mosaicPixelsCIEDEFloyd,
-            mosaicPixelsEuclideanGrayscales,
-            mosaicPixelsCIEDEGrayscales,
-            mosaicPixelsEuclideanFloydGrayscales,
-            mosaicPixelsCIEDEFloydGrayscales
+            //mosaicPixelsEuclideanGrayscales,
+            //mosaicPixelsCIEDEGrayscales,
+            //mosaicPixelsEuclideanFloydGrayscales,
+            //mosaicPixelsCIEDEFloydGrayscales
         } = await processMosaic(base64Image);
 
         // Mosaik-Bilder für alle Varianten erstellen
@@ -354,10 +354,10 @@ async function run(base64Image) {
             await createMosaicImage(mosaicPixelsCIEDE),
             await createMosaicImage(mosaicPixelsEuclideanFloyd),
             await createMosaicImage(mosaicPixelsCIEDEFloyd),
-            await createMosaicImage(mosaicPixelsEuclideanGrayscales),
-            await createMosaicImage(mosaicPixelsCIEDEGrayscales),
-            await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales),
-            await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales)
+            //await createMosaicImage(mosaicPixelsEuclideanGrayscales),
+            //await createMosaicImage(mosaicPixelsCIEDEGrayscales),
+            //await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales),
+            //await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales)
         ];
 
         // Ergebnisse speichern
