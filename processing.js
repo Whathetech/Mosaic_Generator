@@ -335,38 +335,6 @@ async function downloadImage(url) {
     return Buffer.from(response.data);
 }
 
-async function processMosaic(base64Image) {
-    try {
-        // ... [Dekodierung und Skalierung wie in deinem Code]
-
-        // Arrays für die acht Varianten
-        let mosaicPixelsEuclidean = [];
-        let mosaicPixelsCIEDE = [];
-        let mosaicPixelsEuclideanFloyd = [];
-        let mosaicPixelsCIEDEFloyd = [];
-        let mosaicPixelsEuclideanGrayscales = [];
-        let mosaicPixelsCIEDEGrayscales = [];
-        let mosaicPixelsEuclideanFloydGrayscales = [];
-        let mosaicPixelsCIEDEFloydGrayscales = [];
-
-        // ... [Verarbeitungsschleifen wie in deinem Code]
-
-        return {
-            mosaicPixelsEuclidean,
-            mosaicPixelsCIEDE,
-            mosaicPixelsEuclideanFloyd,
-            mosaicPixelsCIEDEFloyd,
-            mosaicPixelsEuclideanGrayscales,
-            mosaicPixelsCIEDEGrayscales,
-            mosaicPixelsEuclideanFloydGrayscales,
-            mosaicPixelsCIEDEFloydGrayscales
-        };
-    } catch (err) {
-        console.error("Fehler beim Laden des Bildes:", err);
-        throw err;
-    }
-}
-
 async function run(base64Image) {
     try {
         // Alle Varianten von Mosaik-Daten abrufen
