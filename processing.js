@@ -144,6 +144,10 @@ async function processMosaic(base64Image) {
             console.error('Mismatch zwischen imageData und den Metadaten.');
         }
 
+        // Berechnen des Skalierungsfaktors für das Raster
+        const scaleX = originalWidth / mosaicWidth;
+        const scaleY = originalHeight / mosaicHeight;
+
         // Arrays für die acht Varianten
         let mosaicPixelsEuclidean = [];
         let mosaicPixelsCIEDE = [];
