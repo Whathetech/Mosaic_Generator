@@ -134,6 +134,12 @@ async function processMosaic(base64Image) {
         console.log('Erster Pixel:', subarrayBuffer);
         const subarrayBuffer2 = imageData.subarray(3, 6); // Alternative
         console.log('Zweiter Pixel:', subarrayBuffer2);
+        const subarrayBuffer3 = imageData.subarray(6, 9); // Alternative
+        console.log('Zweiter Pixel:', subarrayBuffer3);
+        const subarrayBuffer4 = imageData.subarray(9, 12); // Alternative
+        console.log('Zweiter Pixel:', subarrayBuffer4);
+        const subarrayBuffer5 = imageData.subarray(12, 15); // Alternative
+        console.log('Zweiter Pixel:', subarrayBuffer5);
 
         // Arrays für die acht Varianten
         let mosaicPixelsEuclidean = [];
