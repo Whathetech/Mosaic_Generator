@@ -18,6 +18,8 @@ app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. f
 
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
+    console.log('Upload-Route wurde aufgerufen:', new Date());
+
     const { image } = req.body;
 
     if (!image) {
@@ -26,8 +28,11 @@ app.post('/upload', async (req, res) => {
     }
 
     try {
+        console.log('Bild empfangen. Start der Verarbeitung:', new Date());
+
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
         const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
+        console.log('Verarbeitung abgeschlossen. Anzahl der Buffers:', resultBuffers.length);
 
         // Buffers in Base64 kodieren
         const base64Images = resultBuffers.map((buffer, index) => {
@@ -35,11 +40,15 @@ app.post('/upload', async (req, res) => {
             return `data:image/png;base64,${buffer.toString('base64')}`;
         });
 
+        console.log('Alle Bilder in Base64 umgewandelt. Anzahl:', base64Images.length);
+
         // Rückgabe der Bilder an Shopify
         res.status(200).json({
             success: true,
             images: base64Images, // Array mit Base64-Bildern
         });
+
+        console.log('Antwort erfolgreich an den Client gesendet:', new Date());
     } catch (error) {
         console.error('Fehler bei der Bildverarbeitung:', error);
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
@@ -54,3 +63,4 @@ const server = app.listen(PORT, () => {
 
 // Timeout auf 5 Minuten setzen
 server.timeout = 5 * 60 * 1000; // 5 Minuten in Millisekunden
+console.log('Server-Timeout auf 5 Minuten gesetzt.');
