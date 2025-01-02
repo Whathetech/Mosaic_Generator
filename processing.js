@@ -349,26 +349,19 @@ async function run(base64Image) {
         } = await processMosaic(base64Image);
 
         // Mosaik-Bilder für alle Varianten erstellen
-        const mosaicBufferEuclidean = await createMosaicImage(mosaicPixelsEuclidean);
-        const mosaicBufferCIEDE = await createMosaicImage(mosaicPixelsCIEDE);
-        const mosaicBufferEuclideanFloyd = await createMosaicImage(mosaicPixelsEuclideanFloyd);
-        const mosaicBufferCIEDEFloyd = await createMosaicImage(mosaicPixelsCIEDEFloyd);
-        const mosaicBufferEuclideanGrayscales = await createMosaicImage(mosaicPixelsEuclideanGrayscales);
-        const mosaicBufferCIEDEGrayscales = await createMosaicImage(mosaicPixelsCIEDEGrayscales);
-        const mosaicBufferEuclideanFloydGrayscales = await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales);
-        const mosaicBufferCIEDEFloydGrayscales = await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales);
-
-        // Ergebnisse an `resultBuffers` anhängen
-        const resultBuffers = [
-            mosaicBufferEuclidean,
-            mosaicBufferCIEDE,
-            mosaicBufferEuclideanFloyd,
-            mosaicBufferCIEDEFloyd,
-            mosaicBufferEuclideanGrayscales,
-            mosaicBufferCIEDEGrayscales,
-            mosaicBufferEuclideanFloydGrayscales,
-            mosaicBufferCIEDEFloydGrayscales
+        const mosaicBuffers = [
+            await createMosaicImage(mosaicPixelsEuclidean),
+            await createMosaicImage(mosaicPixelsCIEDE),
+            await createMosaicImage(mosaicPixelsEuclideanFloyd),
+            await createMosaicImage(mosaicPixelsCIEDEFloyd),
+            await createMosaicImage(mosaicPixelsEuclideanGrayscales),
+            await createMosaicImage(mosaicPixelsCIEDEGrayscales),
+            await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales),
+            await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales)
         ];
+
+        // Ergebnisse speichern
+        const resultBuffers = [];
 
         // Weitere Verarbeitung mit Hintergrundbildern
         const baseImages = [
@@ -391,25 +384,28 @@ async function run(base64Image) {
 
         const targetResolution = { width: 2084, height: 3095 };
 
-        for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
-            const baseImageBuffer = await downloadImage(baseImagePath);
-            const resizedBuffer = await sharp(mosaicBufferEuclidean)
-                .resize(targetResolution.width, targetResolution.height)
-                .toBuffer();
+        // Verarbeitung für jede Mosaikvariante und jedes Hintergrundbild
+        for (const mosaicBuffer of mosaicBuffers) {
+            for (const { baseImagePath, overlayPosition, scaleFactor } of baseImages) {
+                const baseImageBuffer = await downloadImage(baseImagePath);
+                const resizedBuffer = await sharp(mosaicBuffer)
+                    .resize(targetResolution.width, targetResolution.height)
+                    .toBuffer();
 
-            const metadata = await sharp(resizedBuffer).metadata();
-            const newWidth = Math.round(metadata.width * scaleFactor);
-            const newHeight = Math.round(metadata.height * scaleFactor);
+                const metadata = await sharp(resizedBuffer).metadata();
+                const newWidth = Math.round(metadata.width * scaleFactor);
+                const newHeight = Math.round(metadata.height * scaleFactor);
 
-            const overlayBuffer = await sharp(resizedBuffer)
-                .resize(newWidth, newHeight)
-                .toBuffer();
+                const overlayBuffer = await sharp(resizedBuffer)
+                    .resize(newWidth, newHeight)
+                    .toBuffer();
 
-            const combinedBuffer = await sharp(baseImageBuffer)
-                .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
-                .toBuffer();
+                const combinedBuffer = await sharp(baseImageBuffer)
+                    .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
+                    .toBuffer();
 
-            resultBuffers.push(combinedBuffer);
+                resultBuffers.push(combinedBuffer);
+            }
         }
 
         return resultBuffers;
