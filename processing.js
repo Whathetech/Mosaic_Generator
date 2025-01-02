@@ -412,8 +412,6 @@ async function run(base64Image) {
             resultBuffers.push(combinedBuffer);
         }
 
-        
-
         return resultBuffers;
     } catch (error) {
         console.error("Fehler bei der Mosaik-Erstellung:", error);
