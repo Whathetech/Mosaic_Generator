@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
+const sharp = require('sharp');
 
 // CORS-Konfiguration
 const corsOptions = {
