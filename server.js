@@ -1,80 +1,68 @@
 const express = require('express');
-const cors = require('cors'); // Importiere das cors-Modul
+const cors = require('cors');
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
-const sharp = require('sharp');
 
 // CORS-Konfiguration
 const corsOptions = {
-    origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
-    methods: ['GET', 'POST'],                 // Erlaubte HTTP-Methoden
-    allowedHeaders: ['Content-Type'],         // Erlaubte Header
+    origin: 'https://7e3473-cd.myshopify.com',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type'],
 };
 
 // CORS-Middleware aktivieren
 app.use(cors(corsOptions));
+app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies
 
-// Middleware für JSON-Parsing
-app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
-
-// Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
-    console.log('Upload-Route wurde aufgerufen:', new Date());
+    console.log('[Server] Upload-Route wurde aufgerufen:', new Date());
 
     const { image } = req.body;
 
     if (!image) {
-        console.error('Kein Bild empfangen.');
+        console.error('[Server] Kein Bild empfangen.');
         return res.status(400).json({ success: false, message: 'Kein Bild empfangen.' });
     }
 
     try {
-        console.log('Bild empfangen. Start der Verarbeitung:', new Date());
+        console.log('[Server] Bild empfangen. Start der Verarbeitung:', new Date());
+        const resultBuffers = await run(image);
 
-        // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
-        const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
-        console.log('Verarbeitung abgeschlossen. Anzahl der Buffers:', resultBuffers.length);
+        console.log('[Server] Verarbeitung abgeschlossen. Anzahl der Buffers:', resultBuffers.length);
 
-        // Reduzieren der Bildgröße und Komprimieren
-        const compressedBuffers = await Promise.all(resultBuffers.map(buffer =>
-            sharp(buffer).resize({ width: 1024 }).toBuffer()
-        ));
+        const base64Images = resultBuffers.map((buffer, index) => {
+            console.log(`[Server] Buffer ${index + 1} - Länge: ${buffer.length}`);
+            return `data:image/png;base64,${buffer.toString('base64')}`;
+        });
 
-        console.log('Bilder erfolgreich komprimiert. Anzahl:', compressedBuffers.length);
+        console.log('[Server] Alle Bilder in Base64 umgewandelt. Anzahl:', base64Images.length);
 
-        // Aufteilen in Pakete
-        const batchSize = 3; // Anzahl der Bilder pro Paket
+        const batchSize = 5; // Anzahl der Bilder pro Paket
         const batches = [];
-        for (let i = 0; i < compressedBuffers.length; i += batchSize) {
-            const batch = compressedBuffers.slice(i, i + batchSize);
+        for (let i = 0; i < base64Images.length; i += batchSize) {
+            const batch = base64Images.slice(i, i + batchSize);
+            console.log(`[Server] Paket erstellt. Bilder in diesem Paket: ${batch.length}`);
             batches.push(batch);
         }
 
-        console.log('Bilder in Pakete aufgeteilt. Anzahl der Pakete:', batches.length);
-
-        // Rückgabe der Binärdaten in Paketen
-        const binaryBatches = batches.map(batch =>
-            batch.map(buffer => buffer.toString('base64'))
-        );
+        console.log('[Server] Bilder in Pakete aufgeteilt. Anzahl der Pakete:', batches.length);
 
         res.status(200).json({
             success: true,
-            batches: binaryBatches, // Pakete mit Base64-Bildern
+            batches: batches,
         });
 
-        console.log('Antwort erfolgreich an den Client gesendet:', new Date());
+        console.log('[Server] Pakete erfolgreich an Client gesendet:', new Date());
     } catch (error) {
-        console.error('Fehler bei der Bildverarbeitung:', error);
+        console.error('[Server] Fehler bei der Bildverarbeitung:', error);
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
     }
 });
 
-// Server starten
 const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
-    console.log(`Server läuft auf Port ${PORT}`);
+    console.log(`[Server] Server läuft auf Port ${PORT}`);
 });
 
-// Timeout auf 5 Minuten setzen
-server.timeout = 5 * 60 * 1000; // 5 Minuten in Millisekunden
-console.log('Server-Timeout auf 5 Minuten gesetzt.');
+server.timeout = 5 * 60 * 1000; // 5 Minuten Timeout
+console.log('[Server] Server-Timeout auf 5 Minuten gesetzt.');
