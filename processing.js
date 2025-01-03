@@ -409,7 +409,7 @@ async function run(base64Image) {
                 .composite([{ input: overlayBuffer, top: overlayPosition.top, left: overlayPosition.left }])
                 .toBuffer();
 
-            resultBuffers.push(combinedBuffer);
+            //resultBuffers.push(combinedBuffer);
         }
 
         return resultBuffers;
