@@ -34,27 +34,31 @@ app.post('/upload', async (req, res) => {
         const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
         console.log('Verarbeitung abgeschlossen. Anzahl der Buffers:', resultBuffers.length);
 
-        // Buffers in Base64 kodieren
-        const base64Images = resultBuffers.map((buffer, index) => {
-            console.log(`Buffer ${index + 1} - Länge: ${buffer.length}`);
-            return `data:image/png;base64,${buffer.toString('base64')}`;
-        });
+        // Reduzieren der Bildgröße und Komprimieren
+        const compressedBuffers = await Promise.all(resultBuffers.map(buffer =>
+            sharp(buffer).resize({ width: 1024 }).toBuffer()
+        ));
 
-        console.log('Alle Bilder in Base64 umgewandelt. Anzahl:', base64Images.length);
+        console.log('Bilder erfolgreich komprimiert. Anzahl:', compressedBuffers.length);
 
         // Aufteilen in Pakete
-        const batchSize = 5; // Anzahl der Bilder pro Paket
+        const batchSize = 3; // Anzahl der Bilder pro Paket
         const batches = [];
-        for (let i = 0; i < base64Images.length; i += batchSize) {
-            batches.push(base64Images.slice(i, i + batchSize));
+        for (let i = 0; i < compressedBuffers.length; i += batchSize) {
+            const batch = compressedBuffers.slice(i, i + batchSize);
+            batches.push(batch);
         }
 
         console.log('Bilder in Pakete aufgeteilt. Anzahl der Pakete:', batches.length);
 
-        // Rückgabe der Pakete an Shopify
+        // Rückgabe der Binärdaten in Paketen
+        const binaryBatches = batches.map(batch =>
+            batch.map(buffer => buffer.toString('base64'))
+        );
+
         res.status(200).json({
             success: true,
-            batches: batches // Array mit Paketen, jedes Paket ist ein Array von Base64-Bildern
+            batches: binaryBatches, // Pakete mit Base64-Bildern
         });
 
         console.log('Antwort erfolgreich an den Client gesendet:', new Date());
