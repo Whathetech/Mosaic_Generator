@@ -4,11 +4,12 @@ const sharp = require('sharp');
 const colorDiff = require('color-diff');
 const { colors, grayscales } = require('./colors.js');
 const fs = require('fs');
-const sharedData = require('./server.js'); // Importiere das gemeinsame Datenobjekt
+const { sharedData, emitter } = require('./server.js'); // Importiere sharedData und emitter
 
 // Auf das 'updated'-Ereignis hören
-sharedData.emitter.on('updated', ({ height, width }) => {
+emitter.on('updated', ({ height, width }) => {
     console.log(`Neue Werte erhalten: Höhe = ${height}, Breite = ${width}`);
+    // Hier kannst du weitere Logik hinzufügen
 });
 
 // Funktion zur Umwandlung von Hex-Codes in RGB
