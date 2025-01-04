@@ -120,7 +120,8 @@ async function mosaicdimensions() {
     if (sharedData.width) {
         mosaicWidth = sharedData.width * 16; // Breite berechnen
     }
-    console.log(`Aktualisierte Werte - Breite: ${mosaicWidth}, Höhe: ${mosaicHeight}`);
+    console.log(`Mosaikbreite: ${sharedData.height}, Mosaikhöhe: ${sharedData.width}`);
+    console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}`);
 }
 
 const blockSize = 32; // Größe des Blocks

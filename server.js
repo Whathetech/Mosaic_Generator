@@ -3,6 +3,12 @@ const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
+// Gemeinsames Objekt für die Datenfreigabe
+const sharedData = {
+    height: null,
+    width: null,
+};
+
 // CORS-Konfiguration
 const corsOptions = {
     origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
