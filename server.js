@@ -4,8 +4,6 @@ const emitter = require('./emitter'); // Importiere den separaten EventEmitter
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
-console.log('Server.js: Emitter definiert:', emitter instanceof EventEmitter);
-
 // Gemeinsames Objekt für die Datenfreigabe
 const sharedData = {
     height: null,
@@ -68,8 +66,8 @@ app.post('/upload', async (req, res) => {
     }
 });
 
-// Exportiere sowohl `sharedData` als auch `emitter`
-module.exports = { sharedData, emitter };
+// Exportiere sharedData
+module.exports = { sharedData };
 
 // Server starten
 const PORT = process.env.PORT || 3000;

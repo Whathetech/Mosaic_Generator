@@ -7,8 +7,6 @@ const fs = require('fs');
 const { sharedData } = require('./server.js'); // Importiere sharedData
 const emitter = require('./emitter'); // Importiere den separaten EventEmitter
 
-console.log('Processing.js: Emitter definiert:', emitter instanceof EventEmitter);
-
 // Auf das 'updated'-Ereignis hören
 emitter.on('updated', ({ height, width }) => {
     console.log(`Neue Werte erhalten: Höhe = ${height}, Breite = ${width}`);
