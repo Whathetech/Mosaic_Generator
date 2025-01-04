@@ -20,6 +20,8 @@ app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. f
 const EventEmitter = require('events');
 const eventEmitter = new EventEmitter();
 
+console.log(eventEmitter instanceof EventEmitter); // Sollte true ausgeben
+
 app.post('/upload', async (req, res) => {
     const { image, height, width } = req.body;
 
