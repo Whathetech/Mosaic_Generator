@@ -35,7 +35,7 @@ app.post('/upload', async (req, res) => {
         console.log(`Empfangenes Bild mit Höhe: ${height}, Breite: ${width}`);
 
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
-        const resultBuffers = await run(image, height, width); // Übergabe der zusätzlichen Daten an die Funktion
+        const resultBuffers = await run(image); // Übergabe der zusätzlichen Daten an die Funktion
 
         // Buffers in Base64 kodieren
         const base64Images = resultBuffers.map((buffer, index) => {
