@@ -103,8 +103,7 @@ const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eine
 async function processMosaic(base64Image, mosaicHeight, mosaicWidth) {
     try {
         console.log("Starte Verarbeitung des Mosaiks...");
-        console.log(`Eingehende Parameter - MosaicHeight: ${mosaicHeight}, MosaicWidth: ${mosaicWidth}`);
-
+        console.log(`Eingehende Parameter: mosaicHeight = ${mosaicHeight}, mosaicWidth = ${mosaicWidth}`);
         // Base64-Bild dekodieren und in einen Buffer umwandeln
         const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
 
@@ -112,24 +111,37 @@ async function processMosaic(base64Image, mosaicHeight, mosaicWidth) {
         const metadata = await sharp(imageBuffer).metadata();
         const originalWidth = metadata.width;
         const originalHeight = metadata.height;
-
-        console.log('Auflösung des empfangenen Bildes:', `${originalWidth} x ${originalHeight}`);
-
+        console.log(`Auflösung des Bildes: ${originalWidth} x ${originalHeight}`);
+        
         // Berechnen des Skalierungsfaktors für das Raster
         const scaleX = originalWidth / mosaicWidth;
         const scaleY = originalHeight / mosaicHeight;
-        console.log(`Berechnete Skalierungsfaktoren - ScaleX: ${scaleX}, ScaleY: ${scaleY}`);
+        console.log(`Berechnete Skalierungsfaktoren: scaleX = ${scaleX}, scaleY = ${scaleY}`);
 
         // Extrahieren der Rohbilddaten in einem Buffer (nur RGB)
         const imageData = await sharp(imageBuffer)
-            .removeAlpha() // Entfernt den Alpha-Kanal
-            .raw()
-            .toBuffer();
+        .removeAlpha() // Entfernt den Alpha-Kanal
+        .raw()
+        .toBuffer();
+        console.log(`Rohbilddaten erfolgreich extrahiert. Länge des Buffers: ${imageData.length}`);
 
-        console.log("Rohbilddaten erfolgreich extrahiert. Länge des Buffers:", imageData.length);
+        // Arrays für die acht Varianten
+        let mosaicPixelsEuclidean = [];
+        let mosaicPixelsCIEDE = [];
+        let mosaicPixelsEuclideanFloyd = [];
+        let mosaicPixelsCIEDEFloyd = [];
+        let mosaicPixelsEuclideanGrayscales = [];
+        let mosaicPixelsCIEDEGrayscales = [];
+        let mosaicPixelsEuclideanFloydGrayscales = [];
+        let mosaicPixelsCIEDEFloydGrayscales = [];
 
-        // Debugging für Schleifen
-        console.log("Starte Verarbeitung der Mosaik-Pixel...");
+        // Grautöne
+        const imageDataEuclideanFloyd = Buffer.from(imageData); // Für EUKLID_FLOYD
+        const imageDataCIEDEFloyd = Buffer.from(imageData);    // Für CIEDE_FLOYD
+
+        // Grautöne für Floyd-Steinberg
+        const imageDataEuclideanFloydGrayscales = Buffer.from(imageData); // Für EUKLID_FLOYD
+        const imageDataCIEDEFloydGrayscales = Buffer.from(imageData);    // Für CIEDE_FLOYD
 
         // Verarbeitung der Mosaik-Pixel für EUKLID und CIEDE
         for (let y = 0; y < mosaicHeight; y++) {
@@ -137,61 +149,175 @@ async function processMosaic(base64Image, mosaicHeight, mosaicWidth) {
                 const centerX = Math.floor(x * scaleX + scaleX / 2);
                 const centerY = Math.floor(y * scaleY + scaleY / 2);
 
-                if (centerX >= originalWidth || centerY >= originalHeight) {
-                    console.warn(
-                        `Warnung: Pixel außerhalb der Bildgrenzen! X: ${centerX}, Y: ${centerY}, OriginalWidth: ${originalWidth}, OriginalHeight: ${originalHeight}`
-                    );
-                }
-
                 const index = (centerY * originalWidth + centerX) * 3;
+                const pixel = {
+                    r: imageData[index],
+                    g: imageData[index + 1],
+                    b: imageData[index + 2]
+                };
 
-                // Debugging der Pixel-Koordinaten
-                console.log(`Verarbeite Pixel an Mosaik-Koordinaten (X: ${x}, Y: ${y}) => Bildkoordinaten (X: ${centerX}, Y: ${centerY}), Index: ${index}`);
+                // Farben
+                // EUKLID
+                const closestColorEUKLID = findClosestColorEuclidean(pixel, colors);
+                mosaicPixelsEuclidean.push(closestColorEUKLID);
+
+                // CIEDE
+                const closestColorCIEDE = findClosestColorCIEDE(pixel, colors);
+                mosaicPixelsCIEDE.push(closestColorCIEDE);
+
+                // Grautöne
+                // EUKLID
+                const closestColorEUKLIDGRAYSCALES = findClosestColorEuclidean(pixel, grayscales);
+                mosaicPixelsEuclideanGrayscales.push(closestColorEUKLIDGRAYSCALES);
+
+                // CIEDE
+                const closestColorCIEDEGRAYSCALES = findClosestColorCIEDE(pixel, grayscales);
+                mosaicPixelsCIEDEGrayscales.push(closestColorCIEDEGRAYSCALES);
             }
         }
 
-        console.log("Verarbeitung der Mosaik-Pixel abgeschlossen.");
+        // Separate Schleifen für Floyd-Steinberg
+        for (let y = 0; y < mosaicHeight; y++) {
+            for (let x = 0; x < mosaicWidth; x++) {
+                const centerX = Math.floor(x * scaleX + scaleX / 2);
+                const centerY = Math.floor(y * scaleY + scaleY / 2);
+
+                const index = (centerY * originalWidth + centerX) * 3;
+                const pixelEuclideanFloyd = {
+                    r: imageDataEuclideanFloyd[index],
+                    g: imageDataEuclideanFloyd[index + 1],
+                    b: imageDataEuclideanFloyd[index + 2]
+                };
+                const pixelCIEDEFloyd = {
+                    r: imageDataCIEDEFloyd[index],
+                    g: imageDataCIEDEFloyd[index + 1],
+                    b: imageDataCIEDEFloyd[index + 2]
+                };
+                const pixelCIEDEFloydGrayscales = {
+                    r: imageDataEuclideanFloydGrayscales[index],
+                    g: imageDataEuclideanFloydGrayscales[index + 1],
+                    b: imageDataEuclideanFloydGrayscales[index + 2]
+                };
+                const pixelEuclideanFloydGrayscales = {
+                    r: imageDataCIEDEFloydGrayscales[index],
+                    g: imageDataCIEDEFloydGrayscales[index + 1],
+                    b: imageDataCIEDEFloydGrayscales[index + 2]
+                };
+
+                // Farben
+                // EUKLID + Floyd-Steinberg
+                const closestColorEUKLIDFloyd = findClosestColorEuclidean(pixelEuclideanFloyd, colors);
+                floydSteinbergDither(x, y, pixelEuclideanFloyd, closestColorEUKLIDFloyd, mosaicWidth, mosaicHeight, imageDataEuclideanFloyd, scaleX, scaleY);
+                mosaicPixelsEuclideanFloyd.push(closestColorEUKLIDFloyd);
+
+                // CIEDE + Floyd-Steinberg
+                const closestColorCIEDEFloyd = findClosestColorCIEDE(pixelCIEDEFloyd, colors);
+                floydSteinbergDither(x, y, pixelCIEDEFloyd, closestColorCIEDEFloyd, mosaicWidth, mosaicHeight, imageDataCIEDEFloyd, scaleX, scaleY);
+                mosaicPixelsCIEDEFloyd.push(closestColorCIEDEFloyd);
+
+                // Grautöne
+                // EUKLID + Floyd-Steinberg
+                const closestColorEUKLIDFloydGrayscales = findClosestColorEuclidean(pixelCIEDEFloydGrayscales, grayscales);
+                floydSteinbergDither(x, y, pixelCIEDEFloydGrayscales, closestColorEUKLIDFloydGrayscales, mosaicWidth, mosaicHeight, imageDataEuclideanFloydGrayscales, scaleX, scaleY);
+                mosaicPixelsEuclideanFloydGrayscales.push(closestColorEUKLIDFloydGrayscales);
+
+                // CIEDE + Floyd-Steinberg
+                const closestColorCIEDEFloydGrayscales = findClosestColorCIEDE(pixelEuclideanFloydGrayscales, grayscales);
+                floydSteinbergDither(x, y, pixelEuclideanFloydGrayscales, closestColorCIEDEFloydGrayscales, mosaicWidth, mosaicHeight, imageDataCIEDEFloydGrayscales, scaleX, scaleY);
+                mosaicPixelsCIEDEFloydGrayscales.push(closestColorCIEDEFloydGrayscales);
+            }
+        }
 
         return {
-            // Rückgabe der erstellten Mosaik-Arrays
+            mosaicPixelsEuclidean,
+            mosaicPixelsCIEDE,
+            mosaicPixelsEuclideanFloyd,
+            mosaicPixelsCIEDEFloyd,
+            mosaicPixelsEuclideanGrayscales,
+            mosaicPixelsCIEDEGrayscales,
+            mosaicPixelsEuclideanFloydGrayscales,
+            mosaicPixelsCIEDEFloydGrayscales
         };
 
     } catch (err) {
-        console.error("Fehler beim Verarbeiten des Mosaiks:", err);
-        throw err;
+        console.error("Fehler beim Laden des Bildes:", err);
     }
 }
 
 // Funktion zum Erstellen des Mosaikbildes
 function createMosaicImage(mosaicPixels) {
-    try {
-        console.log("Starte Erstellung des Mosaik-Bildes...");
-        console.log(`Anzahl der Mosaik-Pixel: ${mosaicPixels.length}`);
+    console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}, Blockgröße: ${blockSize}, Rahmenbreite: ${borderWidth}`);
+    let mosaicImageBuffer = Buffer.alloc(mosaicWidth * mosaicHeight * blockSize * blockSize * 4); // 4 Werte pro Pixel (RGB + Alpha)
 
-        // Debugging für Dimensionsberechnungen
-        console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}, Blockgröße: ${blockSize}, Rahmenbreite: ${borderWidth}`);
+    // Mosaik-Pixel als Kreise ins Buffer einfügen
+    mosaicPixels.forEach((pixel, index) => {
+        const blockX = (index % mosaicWidth) * blockSize;
+        const blockY = Math.floor(index / mosaicWidth) * blockSize;
 
-        const mosaicWidthWithBorder = mosaicWidth * blockSize + 2 * borderWidth;
-        const mosaicHeightWithBorder = mosaicHeight * blockSize + 2 * borderWidth;
+        // Zeichne einen Kreis innerhalb des Blocks
+        for (let by = 0; by < blockSize; by++) {
+            for (let bx = 0; bx < blockSize; bx++) {
+                // Berechne den Abstand vom Mittelpunkt des Blocks
+                const distance = Math.sqrt(Math.pow(bx - blockSize / 2, 2) + Math.pow(by - blockSize / 2, 2));
 
-        console.log(`Breite mit Rahmen: ${mosaicWidthWithBorder}, Höhe mit Rahmen: ${mosaicHeightWithBorder}`);
-
-        // Debugging der Schleifen
-        mosaicPixels.forEach((pixel, index) => {
-            const blockX = (index % mosaicWidth) * blockSize;
-            const blockY = Math.floor(index / mosaicWidth) * blockSize;
-
-            if (index % 100 === 0) {
-                console.log(`Verarbeite Block bei Index ${index} - BlockX: ${blockX}, BlockY: ${blockY}`);
+                // Wenn der Abstand vom Mittelpunkt kleiner als der Radius, zeichne den Pixel
+                if (distance < blockSize / 2) {
+                    const offset = ((blockY + by) * mosaicWidth * blockSize + (blockX + bx)) * 4;
+                    mosaicImageBuffer[offset] = pixel.r;
+                    mosaicImageBuffer[offset + 1] = pixel.g;
+                    mosaicImageBuffer[offset + 2] = pixel.b;
+                    mosaicImageBuffer[offset + 3] = 255; // Volle Deckkraft für den Kreis
+                } else {
+                    // Hintergrund schwarz setzen
+                    const offset = ((blockY + by) * mosaicWidth * blockSize + (blockX + bx)) * 4;
+                    mosaicImageBuffer[offset] = 0; // Schwarz
+                    mosaicImageBuffer[offset + 1] = 0; // Schwarz
+                    mosaicImageBuffer[offset + 2] = 0; // Schwarz
+                    mosaicImageBuffer[offset + 3] = 255; // Volle Deckkraft
+                }
             }
-        });
+        }
+    });
 
-        console.log("Mosaik-Bild erfolgreich erstellt.");
-        return finalImageBuffer;
-    } catch (err) {
+    // Schwarzen Rahmen um Mosaik hinzufügen
+    const mosaicWidthWithBorder = mosaicWidth * blockSize + 2 * borderWidth;
+    const mosaicHeightWithBorder = mosaicHeight * blockSize + 2 * borderWidth;
+
+    console.log(`Breite mit Rahmen: ${mosaicWidthWithBorder}, Höhe mit Rahmen: ${mosaicHeightWithBorder}`);
+    
+    let finalImageBuffer = Buffer.alloc(mosaicWidthWithBorder * mosaicHeightWithBorder * 4);
+
+    // Setze den schwarzen Rand
+    for (let y = 0; y < mosaicHeightWithBorder; y++) {
+        for (let x = 0; x < mosaicWidthWithBorder; x++) {
+            const offset = (y * mosaicWidthWithBorder + x) * 4;
+            if (x < borderWidth || x >= mosaicWidthWithBorder - borderWidth || y < borderWidth || y >= mosaicHeightWithBorder - borderWidth) {
+                finalImageBuffer[offset] = 0; // Schwarz
+                finalImageBuffer[offset + 1] = 0; // Schwarz
+                finalImageBuffer[offset + 2] = 0; // Schwarz
+                finalImageBuffer[offset + 3] = 255; // Volle Deckkraft für den Rand
+            } else {
+                // Kopiere das Mosaik in das finale Bild
+                const mosaicX = (x - borderWidth) % (mosaicWidth * blockSize);
+                const mosaicY = (y - borderWidth) % (mosaicHeight * blockSize);
+                const mosaicOffset = (mosaicY * mosaicWidth * blockSize + mosaicX) * 4;
+                finalImageBuffer[offset] = mosaicImageBuffer[mosaicOffset];
+                finalImageBuffer[offset + 1] = mosaicImageBuffer[mosaicOffset + 1];
+                finalImageBuffer[offset + 2] = mosaicImageBuffer[mosaicOffset + 2];
+                finalImageBuffer[offset + 3] = mosaicImageBuffer[mosaicOffset + 3];
+            }
+        }
+    }
+    return sharp(finalImageBuffer, { raw: { width: mosaicWidthWithBorder, height: mosaicHeightWithBorder, channels: 4 } })
+    .png() // Konvertiere die Rohdaten in PNG
+    .toBuffer()
+    .then((buffer) => {
+        return buffer;
+    })
+    .catch((err) => {
         console.error("Fehler beim Erstellen des Mosaik-Bildes:", err);
         throw err;
-    }
+    });
 }
 
 async function downloadImage(url) {
