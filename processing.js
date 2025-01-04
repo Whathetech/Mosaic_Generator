@@ -4,13 +4,6 @@ const sharp = require('sharp');
 const colorDiff = require('color-diff');
 const { colors, grayscales } = require('./colors.js');
 const fs = require('fs');
-const { sharedData } = require('./server.js'); // Importiere sharedData
-const emitter = require('./emitter'); // Importiere den separaten EventEmitter
-
-// Auf das 'updated'-Ereignis hören
-emitter.on('updated', ({ height, width }) => {
-    console.log(`Neue Werte erhalten: Höhe = ${height}, Breite = ${width}`);
-});
 
 // Funktion zur Umwandlung von Hex-Codes in RGB
 function hexToRgb(hex) {
@@ -114,20 +107,8 @@ const CIEDEGRAYSCALES = "CIEDE_GRAYSCALES.png";
 const EUKLIDFLOYDGRAYSCALES = "EUKLID_FLOYD_GRAYSCALES.png";
 const CIEDEFLOYDGRAYSCALES = "CIEDE_FLOYD_GRAYSCALES.png";
 
-// Globale Variablen für die Mosaikdimensionen
-let mosaicWidth = 0;
-let mosaicHeight = 0;
-
-// Funktion zur Berechnung der Mosaikdimensionen
-async function mosaicdimensions() {
-    if (sharedData.height) {
-        mosaicHeight = sharedData.height * 16; // Höhe berechnen
-    }
-    if (sharedData.width) {
-        mosaicWidth = sharedData.width * 16; // Breite berechnen
-    }
-    console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}`);
-}
+mosaicHeight = 96
+mosaicWidth = 64
 
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
