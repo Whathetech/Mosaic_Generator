@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
-const emitter = require('./emitter'); // Importiere den separaten EventEmitter
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
@@ -19,23 +18,16 @@ app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. f
 
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
-    const { image, height, width } = req.body; // `height` und `width` hinzufügen
+    const { image } = req.body;
 
     if (!image) {
         console.error('Kein Bild empfangen.');
         return res.status(400).json({ success: false, message: 'Kein Bild empfangen.' });
     }
 
-    if (!height || !width) {
-        console.error('Höhe oder Breite nicht angegeben.');
-        return res.status(400).json({ success: false, message: 'Höhe oder Breite fehlen.' });
-    }
-
     try {
-        console.log(`Empfangenes Bild mit Höhe: ${height}, Breite: ${width}`);
-
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
-        const resultBuffers = await run(image); // Übergabe der zusätzlichen Daten an die Funktion
+        const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
 
         // Buffers in Base64 kodieren
         const base64Images = resultBuffers.map((buffer, index) => {

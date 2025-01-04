@@ -335,7 +335,6 @@ async function downloadImage(url) {
 
 async function run(base64Image) {
     try {
-        await mosaicdimensions();
         // Alle Varianten von Mosaik-Daten abrufen
         const {
             mosaicPixelsEuclidean,
