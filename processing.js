@@ -97,16 +97,6 @@ function floydSteinbergDither(x, y, pixel, newPixel, mosaicWidth, mosaicHeight, 
     distributeError(1, 1, 1 / 16);  // Unten rechts
 }
 
-// Mosaikbilder
-const EUKLID = "EUKLID.png";
-const CIEDE = "CIEDE.png";
-const EUKLIDFLOYD = "EUKLID_FLOYD.png";
-const CIEDEFLOYD = "CIEDE_FLOYD.png";
-const EUKLIDGRAYSCALES = "EUKLID_GRAYSCALES.png";
-const CIEDEGRAYSCALES = "CIEDE_GRAYSCALES.png";
-const EUKLIDFLOYDGRAYSCALES = "EUKLID_FLOYD_GRAYSCALES.png";
-const CIEDEFLOYDGRAYSCALES = "CIEDE_FLOYD_GRAYSCALES.png";
-
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
 
