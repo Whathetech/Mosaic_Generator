@@ -16,9 +16,13 @@ app.use(cors(corsOptions));
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
-// Route für den Bild-Upload
+// server.js
+let globalData = {};
+
 app.post('/upload', async (req, res) => {
-    const { image, height, width } = req.body; // `height` und `width` hinzufügen
+    const { image, height, width } = req.body;
+    globalData.height = height;
+    globalData.width = width;
 
     if (!image) {
         console.error('Kein Bild empfangen.');
@@ -34,7 +38,7 @@ app.post('/upload', async (req, res) => {
     console.log(`Empfangene Höhe: ${height}, Empfangene Breite: ${width}`);
 
     try {
-        // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
+        // Übergabe des Bildes und der Dimensionen an die `run`-Funktion zur Verarbeitung
         const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
 
         // Buffers in Base64 kodieren
@@ -53,6 +57,8 @@ app.post('/upload', async (req, res) => {
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
     }
 });
+
+module.exports = globalData;
 
 // Server starten
 const PORT = process.env.PORT || 3000;
