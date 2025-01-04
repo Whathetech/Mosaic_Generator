@@ -6,6 +6,11 @@ const { colors, grayscales } = require('./colors.js');
 const fs = require('fs');
 const sharedData = require('./server.js'); // Importiere das gemeinsame Datenobjekt
 
+// Auf das 'updated'-Ereignis hören
+sharedData.emitter.on('updated', ({ height, width }) => {
+    console.log(`Neue Werte erhalten: Höhe = ${height}, Breite = ${width}`);
+});
+
 // Funktion zur Umwandlung von Hex-Codes in RGB
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16);
@@ -120,7 +125,6 @@ async function mosaicdimensions() {
     if (sharedData.width) {
         mosaicWidth = sharedData.width * 16; // Breite berechnen
     }
-    console.log(`Mosaikbreite: ${sharedData.height}, Mosaikhöhe: ${sharedData.width}`);
     console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}`);
 }
 

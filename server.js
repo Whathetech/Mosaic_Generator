@@ -1,12 +1,14 @@
 const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
+const EventEmitter = require('events'); // Importiere EventEmitter
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
-// Gemeinsames Objekt für die Datenfreigabe
+// Gemeinsames Objekt für die Datenfreigabe mit EventEmitter
 const sharedData = {
     height: null,
     width: null,
+    emitter: new EventEmitter(), // Füge den EventEmitter hinzu
 };
 
 // CORS-Konfiguration
@@ -41,6 +43,9 @@ app.post('/upload', async (req, res) => {
 
     console.log(`Empfangene Höhe: ${sharedData.height}, Empfangene Breite: ${sharedData.width}`);
 
+    // Emitte das 'updated'-Ereignis mit den neuen Werten
+    sharedData.emitter.emit('updated', { height, width });
+
     try {
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
         const resultBuffers = await run(image);
@@ -62,7 +67,7 @@ app.post('/upload', async (req, res) => {
     }
 });
 
-// Exportiere das gemeinsame Datenobjekt
+// Exportiere das gemeinsame Datenobjekt mit EventEmitter
 module.exports = sharedData;
 
 // Server starten
