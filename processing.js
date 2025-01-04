@@ -4,12 +4,14 @@ const sharp = require('sharp');
 const colorDiff = require('color-diff');
 const { colors, grayscales } = require('./colors.js');
 const fs = require('fs');
-const { sharedData, emitter } = require('./server.js'); // Importiere sharedData und emitter
+const { sharedData } = require('./server.js'); // Importiere sharedData
+const emitter = require('./emitter'); // Importiere den separaten EventEmitter
+
+console.log('Processing.js: Emitter definiert:', emitter instanceof EventEmitter);
 
 // Auf das 'updated'-Ereignis hören
 emitter.on('updated', ({ height, width }) => {
     console.log(`Neue Werte erhalten: Höhe = ${height}, Breite = ${width}`);
-    // Hier kannst du weitere Logik hinzufügen
 });
 
 // Funktion zur Umwandlung von Hex-Codes in RGB
