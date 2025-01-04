@@ -5,7 +5,6 @@ const colorDiff = require('color-diff');
 const { colors, grayscales } = require('./colors.js');
 const fs = require('fs');
 
-
 // Funktion zur Umwandlung von Hex-Codes in RGB
 function hexToRgb(hex) {
     const r = parseInt(hex.slice(1, 3), 16);

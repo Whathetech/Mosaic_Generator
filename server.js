@@ -18,12 +18,20 @@ app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. f
 
 // Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
-    const { image } = req.body;
+    const { image, height, width } = req.body; // `height` und `width` hinzufügen
 
     if (!image) {
         console.error('Kein Bild empfangen.');
         return res.status(400).json({ success: false, message: 'Kein Bild empfangen.' });
     }
+
+    if (!height || !width) {
+        console.error('Höhe oder Breite nicht angegeben.');
+        return res.status(400).json({ success: false, message: 'Höhe oder Breite fehlen.' });
+    }
+
+    // Höhe und Breite in der Konsole ausgeben
+    console.log(`Empfangene Höhe: ${height}, Empfangene Breite: ${width}`);
 
     try {
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
