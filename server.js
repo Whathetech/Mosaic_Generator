@@ -3,6 +3,12 @@ const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
+// Gemeinsames Objekt für die Datenfreigabe
+const sharedData = {
+    height: null,
+    width: null,
+};
+
 // CORS-Konfiguration
 const corsOptions = {
     origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
@@ -15,12 +21,6 @@ app.use(cors(corsOptions));
 
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
-
-// EventEmitter für Datenübertragung
-const EventEmitter = require('events');
-const eventEmitter = new EventEmitter();
-
-console.log(eventEmitter instanceof EventEmitter); // Sollte true ausgeben
 
 app.post('/upload', async (req, res) => {
     const { image, height, width } = req.body;
@@ -35,11 +35,11 @@ app.post('/upload', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Höhe oder Breite fehlen.' });
     }
 
-    // Höhe und Breite in der Konsole ausgeben
-    console.log(`Empfangene Höhe: ${height}, Empfangene Breite: ${width}`);
+    // Höhe und Breite speichern
+    sharedData.height = height;
+    sharedData.width = width;
 
-    // Daten über den EventEmitter senden
-    eventEmitter.emit('dataReceived', { height, width });
+    console.log(`Empfangene Höhe: ${sharedData.height}, Empfangene Breite: ${sharedData.width}`);
 
     try {
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
@@ -62,8 +62,8 @@ app.post('/upload', async (req, res) => {
     }
 });
 
-// EventEmitter exportieren
-module.exports = eventEmitter;
+// Exportiere das gemeinsame Datenobjekt
+module.exports = sharedData;
 
 // Server starten
 const PORT = process.env.PORT || 3000;
