@@ -107,13 +107,10 @@ const CIEDEGRAYSCALES = "CIEDE_GRAYSCALES.png";
 const EUKLIDFLOYDGRAYSCALES = "EUKLID_FLOYD_GRAYSCALES.png";
 const CIEDEFLOYDGRAYSCALES = "CIEDE_FLOYD_GRAYSCALES.png";
 
-mosaicHeight = 96
-mosaicWidth = 64
-
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
 
-async function processMosaic(base64Image) {
+async function processMosaic(base64Image, mosaicHeight, mosaicWidth) {
     try {
         // Base64-Bild dekodieren und in einen Buffer umwandeln
         const imageBuffer = Buffer.from(base64Image.replace(/^data:image\/\w+;base64,/, ''), 'base64');
@@ -333,8 +330,11 @@ async function downloadImage(url) {
     return Buffer.from(response.data);
 }
 
-async function run(base64Image) {
+async function run(base64Image, width, height) {
     try {
+        mosaicHeight = width * 16;   
+        mosaicWidth = height * 16;
+
         // Alle Varianten von Mosaik-Daten abrufen
         const {
             mosaicPixelsEuclidean,
@@ -345,17 +345,17 @@ async function run(base64Image) {
             mosaicPixelsCIEDEGrayscales,
             mosaicPixelsEuclideanFloydGrayscales,
             mosaicPixelsCIEDEFloydGrayscales
-        } = await processMosaic(base64Image);
+        } = await processMosaic(base64Image, mosaicHeight, mosaicWidth);
 
         // Mosaik-Bilder für alle Varianten erstellen
-        const mosaicBufferEuclidean = await createMosaicImage(mosaicPixelsEuclidean);
-        const mosaicBufferCIEDE = await createMosaicImage(mosaicPixelsCIEDE);
-        const mosaicBufferEuclideanFloyd = await createMosaicImage(mosaicPixelsEuclideanFloyd);
-        const mosaicBufferCIEDEFloyd = await createMosaicImage(mosaicPixelsCIEDEFloyd);
-        const mosaicBufferEuclideanGrayscales = await createMosaicImage(mosaicPixelsEuclideanGrayscales);
-        const mosaicBufferCIEDEGrayscales = await createMosaicImage(mosaicPixelsCIEDEGrayscales);
-        const mosaicBufferEuclideanFloydGrayscales = await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales);
-        const mosaicBufferCIEDEFloydGrayscales = await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales);
+        const mosaicBufferEuclidean = await createMosaicImage(mosaicPixelsEuclidean, mosaicHeight, mosaicWidth);
+        const mosaicBufferCIEDE = await createMosaicImage(mosaicPixelsCIEDE, mosaicHeight, mosaicWidth);
+        const mosaicBufferEuclideanFloyd = await createMosaicImage(mosaicPixelsEuclideanFloyd, mosaicHeight, mosaicWidth);
+        const mosaicBufferCIEDEFloyd = await createMosaicImage(mosaicPixelsCIEDEFloyd, mosaicHeight, mosaicWidth);
+        const mosaicBufferEuclideanGrayscales = await createMosaicImage(mosaicPixelsEuclideanGrayscales, mosaicHeight, mosaicWidth);
+        const mosaicBufferCIEDEGrayscales = await createMosaicImage(mosaicPixelsCIEDEGrayscales, mosaicHeight, mosaicWidth);
+        const mosaicBufferEuclideanFloydGrayscales = await createMosaicImage(mosaicPixelsEuclideanFloydGrayscales, mosaicHeight, mosaicWidth);
+        const mosaicBufferCIEDEFloydGrayscales = await createMosaicImage(mosaicPixelsCIEDEFloydGrayscales, mosaicHeight, mosaicWidth);
 
         // Ergebnisse an `resultBuffers` anhängen
         const resultBuffers = [
