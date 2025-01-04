@@ -327,8 +327,8 @@ async function downloadImage(url) {
 
 async function run(base64Image, width, height) {
     try {
-        mosaicHeight = width * 16;   
-        mosaicWidth = height * 16;
+        mosaicHeight = height * 16;   
+        mosaicWidth = width * 16;
 
         // Alle Varianten von Mosaik-Daten abrufen
         const {
