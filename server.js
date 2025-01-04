@@ -4,12 +4,6 @@ const emitter = require('./emitter'); // Importiere den separaten EventEmitter
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
 
-// Gemeinsames Objekt für die Datenfreigabe
-const sharedData = {
-    height: null,
-    width: null,
-};
-
 // CORS-Konfiguration
 const corsOptions = {
     origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
@@ -23,8 +17,9 @@ app.use(cors(corsOptions));
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
+// Route für den Bild-Upload
 app.post('/upload', async (req, res) => {
-    const { image, height, width } = req.body;
+    const { image, height, width } = req.body; // `height` und `width` hinzufügen
 
     if (!image) {
         console.error('Kein Bild empfangen.');
@@ -36,18 +31,11 @@ app.post('/upload', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Höhe oder Breite fehlen.' });
     }
 
-    // Höhe und Breite speichern
-    sharedData.height = height;
-    sharedData.width = width;
-
-    console.log(`Empfangene Höhe: ${sharedData.height}, Empfangene Breite: ${sharedData.width}`);
-
-    // Emitte das 'updated'-Ereignis mit den neuen Werten
-    emitter.emit('updated', { height, width });
-
     try {
+        console.log(`Empfangenes Bild mit Höhe: ${height}, Breite: ${width}`);
+
         // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
-        const resultBuffers = await run(image);
+        const resultBuffers = await run(image, height, width); // Übergabe der zusätzlichen Daten an die Funktion
 
         // Buffers in Base64 kodieren
         const base64Images = resultBuffers.map((buffer, index) => {
@@ -65,9 +53,6 @@ app.post('/upload', async (req, res) => {
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
     }
 });
-
-// Exportiere sharedData
-module.exports = { sharedData };
 
 // Server starten
 const PORT = process.env.PORT || 3000;
