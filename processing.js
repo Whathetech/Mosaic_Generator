@@ -123,9 +123,6 @@ async function mosaicdimensions() {
     console.log(`Aktualisierte Werte - Breite: ${mosaicWidth}, Höhe: ${mosaicHeight}`);
 }
 
-console.log(`Mosaikbreite: ${sharedData.height}, Mosaikhöhe: ${sharedData.width}`);
-console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}`);
-
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
 
@@ -436,4 +433,3 @@ async function run(base64Image) {
 }
 
 module.exports = { run };
-module.exports = { mosaicdimensions };
