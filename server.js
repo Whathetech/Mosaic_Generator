@@ -16,13 +16,12 @@ app.use(cors(corsOptions));
 // Middleware für JSON-Parsing
 app.use(express.json({ limit: '300mb' })); // Erlaubt große JSON-Bodies, z.B. für Base64-Bilder
 
-// server.js
-let globalData = {};
+// EventEmitter für Datenübertragung
+const EventEmitter = require('events');
+const eventEmitter = new EventEmitter();
 
 app.post('/upload', async (req, res) => {
     const { image, height, width } = req.body;
-    globalData.height = height;
-    globalData.width = width;
 
     if (!image) {
         console.error('Kein Bild empfangen.');
@@ -37,9 +36,12 @@ app.post('/upload', async (req, res) => {
     // Höhe und Breite in der Konsole ausgeben
     console.log(`Empfangene Höhe: ${height}, Empfangene Breite: ${width}`);
 
+    // Daten über den EventEmitter senden
+    eventEmitter.emit('dataReceived', { height, width });
+
     try {
-        // Übergabe des Bildes und der Dimensionen an die `run`-Funktion zur Verarbeitung
-        const resultBuffers = await run(image); // `run` gibt ein Array von Buffern zurück
+        // Übergabe des Bildes an die `run`-Funktion zur Verarbeitung
+        const resultBuffers = await run(image);
 
         // Buffers in Base64 kodieren
         const base64Images = resultBuffers.map((buffer, index) => {
@@ -58,7 +60,8 @@ app.post('/upload', async (req, res) => {
     }
 });
 
-module.exports = globalData;
+// EventEmitter exportieren
+module.exports = eventEmitter;
 
 // Server starten
 const PORT = process.env.PORT || 3000;
