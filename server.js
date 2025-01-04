@@ -3,7 +3,6 @@ const cors = require('cors'); // Importiere das cors-Modul
 const EventEmitter = require('events'); // Importiere EventEmitter
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
-const EventEmitter = require('events'); // EventEmitter importieren
 
 // Gemeinsames Objekt für die Datenfreigabe mit EventEmitter
 const sharedData = {
