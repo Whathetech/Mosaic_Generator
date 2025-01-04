@@ -108,16 +108,24 @@ const CIEDEGRAYSCALES = "CIEDE_GRAYSCALES.png";
 const EUKLIDFLOYDGRAYSCALES = "EUKLID_FLOYD_GRAYSCALES.png";
 const CIEDEFLOYDGRAYSCALES = "CIEDE_FLOYD_GRAYSCALES.png";
 
-// Bildgröße des Mosaiks
-if (sharedData.height) {
-    mosaicHeight = sharedData.height * 16; // Höhe berechnen
-}
-if (sharedData.width) {
-    mosaicWidth = sharedData.width * 16; // Breite berechnen
+// Globale Variablen für die Mosaikdimensionen
+let mosaicWidth = 0;
+let mosaicHeight = 0;
+
+// Funktion zur Berechnung der Mosaikdimensionen
+async function mosaicdimensions() {
+    if (sharedData.height) {
+        mosaicHeight = sharedData.height * 16; // Höhe berechnen
+    }
+    if (sharedData.width) {
+        mosaicWidth = sharedData.width * 16; // Breite berechnen
+    }
+    console.log(`Aktualisierte Werte - Breite: ${mosaicWidth}, Höhe: ${mosaicHeight}`);
 }
 
 console.log(`Mosaikbreite: ${sharedData.height}, Mosaikhöhe: ${sharedData.width}`);
 console.log(`Mosaikbreite: ${mosaicWidth}, Mosaikhöhe: ${mosaicHeight}`);
+
 const blockSize = 32; // Größe des Blocks
 const borderWidth = blockSize; // Breite des Rahmens (entspricht dem Radius eines Kreises)
 
@@ -343,6 +351,7 @@ async function downloadImage(url) {
 
 async function run(base64Image) {
     try {
+        await mosaicdimensions();
         // Alle Varianten von Mosaik-Daten abrufen
         const {
             mosaicPixelsEuclidean,
@@ -427,3 +436,4 @@ async function run(base64Image) {
 }
 
 module.exports = { run };
+module.exports = { mosaicdimensions };
