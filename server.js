@@ -12,9 +12,6 @@ const sharedData = {
     width: null,
 };
 
-// EventEmitter separat initialisieren
-const emitter = new EventEmitter();
-
 // CORS-Konfiguration
 const corsOptions = {
     origin: 'https://7e3473-cd.myshopify.com', // Erlaubte Domain
