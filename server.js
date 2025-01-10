@@ -54,6 +54,7 @@ app.post('/upload', async (req, res) => {
     }
 });
 
+const { checkTokenValidity } = require('./product');
 checkTokenValidity();
 
 const { createProduct } = require('./product');
