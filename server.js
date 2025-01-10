@@ -57,7 +57,6 @@ app.post('/upload', async (req, res) => {
 const { createProduct } = require('./product');
 
 app.post('/create-product', async (req, res) => {
-    console.log("Titel, Preis erhalten")
     const { title, price } = req.body;
 
     if (!title || !price) {
@@ -66,8 +65,8 @@ app.post('/create-product', async (req, res) => {
 
     try {
         const product = await createProduct(title, price);
-
-        // Erfolgsmeldung in der Konsole ausgeben
+        
+        // Überprüfe die Antwort von createProduct
         console.log(`Produkt erstellt: ID=${product.id}, Titel="${title}", Preis=${price}`);
 
         res.status(201).json({ success: true, product });

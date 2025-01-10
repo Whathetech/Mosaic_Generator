@@ -20,10 +20,15 @@ async function createProduct(title, price) {
                 }
             }
         );
-        return response.data;
+
+        // Logge die gesamte Antwort von Shopify zur Fehlerbehebung
+        console.log('Antwort von Shopify:', response.data);
+
+        // Stelle sicher, dass nur das Produktobjekt zurückgegeben wird
+        return response.data.product;
     } catch (error) {
-        console.error('Fehler bei der Produkterstellung:', error.response?.data || error.message);
-        throw error;
+        console.error('Fehler bei der Produkterstellung:', error.response ? error.response.data : error.message);
+        throw error; // Wirft den Fehler erneut, sodass er im aufrufenden Code verarbeitet werden kann
     }
 }
 
