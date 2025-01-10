@@ -1,4 +1,5 @@
 const axios = require('axios');
+require('dotenv').config();
 
 async function createProduct(title, price) {
     const shopifyAccessToken = process.env.SHOPIFY_ACCESS_TOKEN;
