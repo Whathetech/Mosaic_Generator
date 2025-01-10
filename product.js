@@ -20,6 +20,9 @@ async function createProduct(title, price) {
                 }
             }
         );
+
+        console.log('Produkt erstellt:', response.data);
+
         return response.data;
     } catch (error) {
         console.error('Fehler bei der Produkterstellung:', error.response?.data || error.message);
