@@ -6,7 +6,7 @@ async function createProduct(title, price) {
 
     try {
         const response = await axios.post(
-            `${shopUrl}/admin/api/2023-10/products.json`,
+            `${shopUrl}/admin/api/2025-01/products.json`,
             {
                 product: {
                     title,
