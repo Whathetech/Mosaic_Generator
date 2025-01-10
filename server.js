@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors'); // Importiere das cors-Modul
 const app = express();
 const { run } = require('./processing.js'); // Importiere die `run`-Funktion aus processing.js
+require('dotenv').config();
 
 // CORS-Konfiguration
 const corsOptions = {
@@ -50,6 +51,26 @@ app.post('/upload', async (req, res) => {
     } catch (error) {
         console.error('Fehler bei der Bildverarbeitung:', error);
         res.status(500).json({ success: false, message: 'Fehler bei der Bildverarbeitung.' });
+    }
+});
+
+const { createProduct } = require('./product');
+
+app.post('/create-product', async (req, res) => {
+    const { title, price } = req.body;
+
+    // Erfolgsmeldung in der Konsole ausgeben
+    console.log(`Produkt erstellt: ID=${product.id}, Titel="${title}", Preis=${price}`);
+
+    if (!title || !price) {
+        return res.status(400).json({ success: false, message: 'Titel oder Preis fehlen.' });
+    }
+
+    try {
+        const product = await createProduct(title, price);
+        res.status(201).json({ success: true, product });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Fehler bei der Produkterstellung.' });
     }
 });
 
