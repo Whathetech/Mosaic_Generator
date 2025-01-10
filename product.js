@@ -6,7 +6,7 @@ async function createProduct(title, price) {
 
     try {
         const response = await axios.post(
-            `${shopUrl}/admin/api/2025-01/products.json`,
+            `${shopUrl}/admin/api/2023-10/products.json`,
             {
                 product: {
                     title,
@@ -20,18 +20,7 @@ async function createProduct(title, price) {
                 }
             }
         );
-
-        // Logge die gesamte Antwort von Shopify
-        console.log('Antwort von Shopify:', response.data);
-
-        // Überprüfe, ob das Produktobjekt existiert
-        if (response.data.product) {
-            console.log(`Produkt erfolgreich erstellt: ID=${response.data.product.id}`);
-            return response.data.product;
-        } else {
-            console.error('Kein Produkt in der Antwort gefunden.');
-            return null; // Rückgabe null, wenn das Produkt nicht gefunden wird
-        }
+        return response.data;
     } catch (error) {
         console.error('Fehler bei der Produkterstellung:', error.response?.data || error.message);
         throw error;
