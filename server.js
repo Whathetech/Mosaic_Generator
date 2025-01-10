@@ -54,6 +54,8 @@ app.post('/upload', async (req, res) => {
     }
 });
 
+checkTokenValidity();
+
 const { createProduct } = require('./product');
 
 app.post('/create-product', async (req, res) => {

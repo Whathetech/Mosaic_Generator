@@ -21,8 +21,6 @@ async function createProduct(title, price) {
             }
         );
 
-        console.log('Produkt erstellt:', response.data);
-
         return response.data;
     } catch (error) {
         console.error('Fehler bei der Produkterstellung:', error.response?.data || error.message);
@@ -30,4 +28,26 @@ async function createProduct(title, price) {
     }
 }
 
-module.exports = { createProduct };
+async function checkTokenValidity() {
+    const shopifyAccessToken = process.env.SHOPIFY_ACCESS_TOKEN; // Dein Access Token
+    const shopUrl = process.env.SHOPIFY_STORE_URL; // Dein Shop-URL (z. B. https://deinshop.myshopify.com)
+
+    try {
+        const response = await axios.get(`${shopUrl}/admin/api/2023-10/shop.json`, {
+            headers: {
+                'X-Shopify-Access-Token': shopifyAccessToken
+            }
+        });
+
+        // Erfolgreiche Antwort
+        console.log('Zugriff auf Shop-Daten erfolgreich:', response.data);
+    } catch (error) {
+        // Fehler beim Zugriff
+        console.error('Fehler bei der Token-Überprüfung:', error.response?.data || error.message);
+    }
+}
+
+module.exports = { 
+    createProduct,
+    checkTokenValidity
+};
