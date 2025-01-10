@@ -57,10 +57,8 @@ app.post('/upload', async (req, res) => {
 const { createProduct } = require('./product');
 
 app.post('/create-product', async (req, res) => {
+    console.log("Titel, Preis erhalten")
     const { title, price } = req.body;
-
-    // Erfolgsmeldung in der Konsole ausgeben
-    console.log(`Produkt erstellt: ID=${product.id}, Titel="${title}", Preis=${price}`);
 
     if (!title || !price) {
         return res.status(400).json({ success: false, message: 'Titel oder Preis fehlen.' });
@@ -68,8 +66,13 @@ app.post('/create-product', async (req, res) => {
 
     try {
         const product = await createProduct(title, price);
+
+        // Erfolgsmeldung in der Konsole ausgeben
+        console.log(`Produkt erstellt: ID=${product.id}, Titel="${title}", Preis=${price}`);
+
         res.status(201).json({ success: true, product });
     } catch (error) {
+        console.error('Fehler bei der Produkterstellung:', error);
         res.status(500).json({ success: false, message: 'Fehler bei der Produkterstellung.' });
     }
 });
